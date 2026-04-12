@@ -1,68 +1,68 @@
-"use client";
+'use client'
 
-import { useMemo, useState } from "react";
+import { useMemo, useState } from 'react'
 
 export default function Home() {
   const [form, setForm] = useState({
-    fromName: "",
-    toName: "",
-    message: "",
-    musicUrl: "",
-    whatsapp: "",
-    buttonText: "Responder agora 💖",
-    accent: "rosa",
-    tone: "romântico elegante",
-    memory: "",
-  });
+    fromName: '',
+    toName: '',
+    message: '',
+    musicUrl: '',
+    whatsapp: '',
+    buttonText: 'Responder agora 💖',
+    accent: 'rosa',
+    tone: 'romântico elegante',
+    memory: ''
+  })
 
-  const [photos, setPhotos] = useState([]);
-  const [createdLink, setCreatedLink] = useState("");
-  const [copiedMessage, setCopiedMessage] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
-  const [loadingAi, setLoadingAi] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [photos, setPhotos] = useState([])
+  const [createdLink, setCreatedLink] = useState('')
+  const [copiedMessage, setCopiedMessage] = useState(false)
+  const [copiedLink, setCopiedLink] = useState(false)
+  const [loadingAi, setLoadingAi] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   function handleChange(e) {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value } = e.target
+    setForm((prev) => ({ ...prev, [name]: value }))
   }
 
   function handlePhotosUpload(e) {
-    const files = Array.from(e.target.files || []).slice(0, 3);
-    if (!files.length) return;
+    const files = Array.from(e.target.files || []).slice(0, 3)
+    if (!files.length) return
 
     Promise.all(
       files.map(
         (file) =>
           new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.readAsDataURL(file);
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result)
+            reader.readAsDataURL(file)
           })
       )
     ).then((results) => {
-      setPhotos(results);
-    });
+      setPhotos(results)
+    })
   }
 
   function removePhoto(indexToRemove) {
-    setPhotos((prev) => prev.filter((_, index) => index !== indexToRemove));
+    setPhotos((prev) => prev.filter((_, index) => index !== indexToRemove))
   }
 
   function buildAiMessage() {
-    const to = form.toName || "você";
-    const from = form.fromName || "alguém que te ama";
+    const to = form.toName || 'você'
+    const from = form.fromName || 'alguém que te ama'
 
     const toneText =
-      form.tone === "fofo delicado"
-        ? "de um jeito doce, leve e cheio de carinho"
-        : form.tone === "apaixonado intenso"
-        ? "de um jeito intenso, profundo e impossível de esconder"
-        : "de um jeito elegante, sincero e cheio de sentimento";
+      form.tone === 'fofo delicado'
+        ? 'de um jeito doce, leve e cheio de carinho'
+        : form.tone === 'apaixonado intenso'
+        ? 'de um jeito intenso, profundo e impossível de esconder'
+        : 'de um jeito elegante, sincero e cheio de sentimento'
 
     const memoryText = form.memory?.trim()
       ? `Eu guardo com muito carinho cada detalhe de ${form.memory}, como se fosse um dos capítulos mais bonitos da nossa história. `
-      : "";
+      : ''
 
     return `Desde que ${to} chegou, minha vida ganhou um brilho diferente. ✨
 
@@ -73,43 +73,43 @@ Eu queria te dizer ${toneText} o quanto você é especial pra mim. Sua presença
 Talvez eu nunca consiga colocar em palavras tudo o que sinto, mas ainda assim faço questão de tentar — porque você merece saber o tamanho do carinho que existe aqui dentro.
 
 Com todo meu amor e admiração,
-${from} 💖`;
+${from} 💖`
   }
 
   function generateAiMessage() {
-    setLoadingAi(true);
+    setLoadingAi(true)
 
     setTimeout(() => {
       setForm((prev) => ({
         ...prev,
-        message: buildAiMessage(),
-      }));
-      setLoadingAi(false);
-    }, 1000);
+        message: buildAiMessage()
+      }))
+      setLoadingAi(false)
+    }, 1000)
   }
 
   async function copyMessage() {
-    if (!form.message) return;
-    await navigator.clipboard.writeText(form.message);
-    setCopiedMessage(true);
-    setTimeout(() => setCopiedMessage(false), 1800);
+    if (!form.message) return
+    await navigator.clipboard.writeText(form.message)
+    setCopiedMessage(true)
+    setTimeout(() => setCopiedMessage(false), 1800)
   }
 
   async function copyLink() {
-    if (!createdLink) return;
-    await navigator.clipboard.writeText(createdLink);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 1800);
+    if (!createdLink) return
+    await navigator.clipboard.writeText(createdLink)
+    setCopiedLink(true)
+    setTimeout(() => setCopiedLink(false), 1800)
   }
 
   async function createCartinha(openInNewTab = false) {
     try {
-      setSaving(true);
+      setSaving(true)
 
-      const response = await fetch("/api/cartinhas", {
-        method: "POST",
+      const response = await fetch('/api/cartinhas', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           fromName: form.fromName,
@@ -121,56 +121,56 @@ ${from} 💖`;
           accent: form.accent,
           tone: form.tone,
           memory: form.memory,
-          photos,
-        }),
-      });
+          photos
+        })
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (!response.ok || !data.slug) {
-        alert(data?.details || data?.error || "Erro ao gerar link curto.");
-        return;
+        alert(data?.error || 'Erro ao criar cartinha.')
+        return
       }
 
-      const link = `${window.location.origin}/c/${data.slug}`;
-      setCreatedLink(link);
+      const link = `${window.location.origin}/c/${data.slug}`
+      setCreatedLink(link)
 
       if (openInNewTab) {
-        window.open(link, "_blank");
+        window.open(link, '_blank')
       }
     } catch (error) {
-      alert("Erro ao gerar link curto.");
+      alert('Erro ao criar cartinha.')
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
   }
 
   const accent = useMemo(() => {
-    if (form.accent === "roxo") {
+    if (form.accent === 'roxo') {
       return {
-        soft: "rgba(208,108,255,0.16)",
-        gradient: "linear-gradient(90deg, #d06cff, #8b5cf6)",
-        text: "#f3ddff",
-      };
+        soft: 'rgba(208,108,255,0.16)',
+        gradient: 'linear-gradient(90deg, #d06cff, #8b5cf6)',
+        text: '#f3ddff'
+      }
     }
 
-    if (form.accent === "vinho") {
+    if (form.accent === 'vinho') {
       return {
-        soft: "rgba(201,71,109,0.16)",
-        gradient: "linear-gradient(90deg, #d85f87, #7c1635)",
-        text: "#ffdce8",
-      };
+        soft: 'rgba(201,71,109,0.16)',
+        gradient: 'linear-gradient(90deg, #d85f87, #7c1635)',
+        text: '#ffdce8'
+      }
     }
 
     return {
-      soft: "rgba(255,110,168,0.16)",
-      gradient: "linear-gradient(90deg, #ff6ea8, #b56cff)",
-      text: "#ffe0ed",
-    };
-  }, [form.accent]);
+      soft: 'rgba(255,110,168,0.16)',
+      gradient: 'linear-gradient(90deg, #ff6ea8, #b56cff)',
+      text: '#ffe0ed'
+    }
+  }, [form.accent])
 
-  const mediaType = useMemo(() => getMediaType(form.musicUrl), [form.musicUrl]);
-  const mediaEmbedUrl = useMemo(() => getEmbedUrl(form.musicUrl), [form.musicUrl]);
+  const mediaType = useMemo(() => getMediaType(form.musicUrl), [form.musicUrl])
+  const mediaEmbedUrl = useMemo(() => getEmbedUrl(form.musicUrl), [form.musicUrl])
 
   return (
     <main style={pageStyle}>
@@ -186,9 +186,9 @@ ${from} 💖`;
         <div style={terminalCardStyle}>
           <div style={terminalHeaderStyle}>
             <div style={terminalDotsStyle}>
-              <span style={{ ...dotStyle, background: "#ff6b8a" }} />
-              <span style={{ ...dotStyle, background: "#ff89a1" }} />
-              <span style={{ ...dotStyle, background: "#ffadc0" }} />
+              <span style={{ ...dotStyle, background: '#ff6b8a' }} />
+              <span style={{ ...dotStyle, background: '#ff89a1' }} />
+              <span style={{ ...dotStyle, background: '#ffadc0' }} />
             </div>
             <div style={terminalFileStyle}>cartinha.txt</div>
           </div>
@@ -196,8 +196,8 @@ ${from} 💖`;
           <div style={terminalBodyStyle}>
             <p style={terminalLineStyle}>┌─ Criando Cartinha Especial</p>
             <p style={terminalLineStyle}>│</p>
-            <p style={terminalLineStyle}>│ Para: {form.toName || "Maria"}</p>
-            <p style={terminalLineStyle}>│ De: {form.fromName || "João"}</p>
+            <p style={terminalLineStyle}>│ Para: {form.toName || 'Maria'}</p>
+            <p style={terminalLineStyle}>│ De: {form.fromName || 'João'}</p>
             <p style={terminalLineStyle}>└──────────────────────────────</p>
             <br />
             <p style={terminalLineStyle}>[1/8] 🤖 IA</p>
@@ -301,7 +301,7 @@ ${from} 💖`;
               />
 
               {photos.length > 0 && (
-                <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+                <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
                   {photos.map((_, index) => (
                     <button
                       type="button"
@@ -365,23 +365,23 @@ ${from} 💖`;
             <button
               type="button"
               onClick={generateAiMessage}
-              style={{ ...secondaryButtonStyle, color: "#fff" }}
+              style={{ ...secondaryButtonStyle, color: '#fff' }}
             >
-              {loadingAi ? "Gerando com IA..." : "Gerar mensagem com IA"}
+              {loadingAi ? 'Gerando com IA...' : 'Gerar mensagem com IA'}
             </button>
 
             <button type="button" onClick={copyMessage} style={secondaryButtonStyle}>
-              {copiedMessage ? "Mensagem copiada!" : "Copiar mensagem"}
+              {copiedMessage ? 'Mensagem copiada!' : 'Copiar mensagem'}
             </button>
           </div>
 
           <div className="double-grid" style={doubleGridStyle}>
             <button type="button" onClick={() => createCartinha(false)} style={secondaryButtonStyle}>
-              {saving ? "Gerando link..." : "Gerar link curto"}
+              {saving ? 'Gerando link...' : 'Gerar link curto'}
             </button>
 
             <button type="button" onClick={copyLink} style={secondaryButtonStyle}>
-              {copiedLink ? "Link copiado!" : "Copiar link"}
+              {copiedLink ? 'Link copiado!' : 'Copiar link'}
             </button>
           </div>
 
@@ -390,7 +390,7 @@ ${from} 💖`;
             onClick={() => createCartinha(true)}
             style={{ ...primaryButtonStyle, background: accent.gradient }}
           >
-            {saving ? "Criando..." : "Criar Minha Cartinha ❯"}
+            {saving ? 'Criando...' : 'Criar Minha Cartinha ❯'}
           </button>
 
           {createdLink && (
@@ -405,28 +405,33 @@ ${from} 💖`;
           <h2 style={cardTitleStyle}>Prévia premium</h2>
 
           <div style={previewMessageStyle}>
-            {form.message || "Sua mensagem vai aparecer aqui..."}
+            {form.message || 'Sua mensagem vai aparecer aqui...'}
           </div>
 
           {photos.length > 0 && (
             <div className="photo-grid" style={photoGridStyle}>
               {photos.map((photo, index) => (
-                <img key={index} src={photo} alt={`Preview ${index + 1}`} style={photoStyle} />
+                <img
+                  key={index}
+                  src={photo}
+                  alt={`Preview ${index + 1}`}
+                  style={photoStyle}
+                />
               ))}
             </div>
           )}
 
-          {mediaType !== "none" && (
+          {mediaType !== 'none' && (
             <div style={mediaCardStyle}>
               <div style={mediaTitleStyle}>Prévia da música 🎵</div>
 
-              {mediaType === "audio" && (
-                <audio controls style={{ width: "100%" }}>
+              {mediaType === 'audio' && (
+                <audio controls style={{ width: '100%' }}>
                   <source src={form.musicUrl} />
                 </audio>
               )}
 
-              {mediaType === "spotify" && mediaEmbedUrl && (
+              {mediaType === 'spotify' && mediaEmbedUrl && (
                 <iframe
                   src={mediaEmbedUrl}
                   width="100%"
@@ -437,7 +442,7 @@ ${from} 💖`;
                 />
               )}
 
-              {mediaType === "youtube" && mediaEmbedUrl && (
+              {mediaType === 'youtube' && mediaEmbedUrl && (
                 <div style={videoWrapStyle}>
                   <iframe
                     src={mediaEmbedUrl}
@@ -459,50 +464,50 @@ ${from} 💖`;
         </div>
       </section>
     </main>
-  );
+  )
 }
 
 function getMediaType(url) {
-  if (!url) return "none";
-  const lower = url.toLowerCase();
+  if (!url) return 'none'
+  const lower = url.toLowerCase()
 
   if (
-    lower.includes(".mp3") ||
-    lower.includes(".wav") ||
-    lower.includes(".ogg") ||
-    lower.includes(".m4a")
+    lower.includes('.mp3') ||
+    lower.includes('.wav') ||
+    lower.includes('.ogg') ||
+    lower.includes('.m4a')
   ) {
-    return "audio";
+    return 'audio'
   }
 
-  if (lower.includes("spotify.com")) return "spotify";
-  if (lower.includes("youtube.com") || lower.includes("youtu.be")) return "youtube";
+  if (lower.includes('spotify.com')) return 'spotify'
+  if (lower.includes('youtube.com') || lower.includes('youtu.be')) return 'youtube'
 
-  return "none";
+  return 'none'
 }
 
 function getEmbedUrl(url) {
-  if (!url) return "";
+  if (!url) return ''
 
   try {
-    if (url.includes("spotify.com")) {
-      return url.replace("open.spotify.com/", "open.spotify.com/embed/");
+    if (url.includes('spotify.com')) {
+      return url.replace('open.spotify.com/', 'open.spotify.com/embed/')
     }
 
-    if (url.includes("youtu.be/")) {
-      const id = url.split("youtu.be/")[1]?.split("?")[0];
-      return id ? `https://www.youtube.com/embed/${id}` : "";
+    if (url.includes('youtu.be/')) {
+      const id = url.split('youtu.be/')[1]?.split('?')[0]
+      return id ? `https://www.youtube.com/embed/${id}` : ''
     }
 
-    if (url.includes("youtube.com/watch?v=")) {
-      const parsed = new URL(url);
-      const id = parsed.searchParams.get("v");
-      return id ? `https://www.youtube.com/embed/${id}` : "";
+    if (url.includes('youtube.com/watch?v=')) {
+      const parsed = new URL(url)
+      const id = parsed.searchParams.get('v')
+      return id ? `https://www.youtube.com/embed/${id}` : ''
     }
 
-    return "";
+    return ''
   } catch {
-    return "";
+    return ''
   }
 }
 
@@ -546,336 +551,336 @@ function ResponsiveStyles() {
         }
       }
     `}</style>
-  );
+  )
 }
 
 const pageStyle = {
-  minHeight: "100vh",
+  minHeight: '100vh',
   background:
-    "radial-gradient(circle at top, rgba(255,98,160,0.16), transparent 20%), radial-gradient(circle at bottom, rgba(181,108,255,0.14), transparent 18%), linear-gradient(180deg, #120613 0%, #0d0714 100%)",
-  color: "#fff",
+    'radial-gradient(circle at top, rgba(255,98,160,0.16), transparent 20%), radial-gradient(circle at bottom, rgba(181,108,255,0.14), transparent 18%), linear-gradient(180deg, #120613 0%, #0d0714 100%)',
+  color: '#fff',
   fontFamily:
     'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-  position: "relative",
-  overflow: "hidden",
-};
+  position: 'relative',
+  overflow: 'hidden'
+}
 
 const starsOverlayStyle = {
-  position: "absolute",
+  position: 'absolute',
   inset: 0,
-  backgroundImage: "radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1px)",
-  backgroundSize: "38px 38px",
+  backgroundImage: 'radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1px)',
+  backgroundSize: '38px 38px',
   opacity: 0.14,
-  pointerEvents: "none",
-};
+  pointerEvents: 'none'
+}
 
 const topRibbonStyle = {
-  width: "100%",
-  color: "#fff",
-  textAlign: "center",
+  width: '100%',
+  color: '#fff',
+  textAlign: 'center',
   fontWeight: 800,
   fontSize: 16,
-  padding: "14px 20px",
-  position: "relative",
-  zIndex: 2,
-};
+  padding: '14px 20px',
+  position: 'relative',
+  zIndex: 2
+}
 
 const heroStyle = {
   maxWidth: 1400,
-  margin: "0 auto",
-  padding: "60px 28px 24px",
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
+  margin: '0 auto',
+  padding: '60px 28px 24px',
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
   gap: 40,
-  alignItems: "center",
-  position: "relative",
-  zIndex: 2,
-};
+  alignItems: 'center',
+  position: 'relative',
+  zIndex: 2
+}
 
 const terminalCardStyle = {
-  background: "#1a1a1f",
+  background: '#1a1a1f',
   borderRadius: 30,
-  overflow: "hidden",
-  boxShadow: "0 30px 80px rgba(0,0,0,0.42)",
-  border: "1px solid rgba(255,255,255,0.06)",
-};
+  overflow: 'hidden',
+  boxShadow: '0 30px 80px rgba(0,0,0,0.42)',
+  border: '1px solid rgba(255,255,255,0.06)'
+}
 
 const terminalHeaderStyle = {
-  background: "#3b3740",
-  padding: "16px 20px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-};
+  background: '#3b3740',
+  padding: '16px 20px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between'
+}
 
 const terminalDotsStyle = {
-  display: "flex",
-  gap: 10,
-};
+  display: 'flex',
+  gap: 10
+}
 
 const dotStyle = {
   width: 14,
   height: 14,
-  borderRadius: "50%",
-  display: "inline-block",
-};
+  borderRadius: '50%',
+  display: 'inline-block'
+}
 
 const terminalFileStyle = {
-  color: "#ddd1da",
+  color: '#ddd1da',
   fontWeight: 700,
-  fontSize: 18,
-};
+  fontSize: 18
+}
 
 const terminalBodyStyle = {
   padding: 28,
   fontFamily: '"Courier New", monospace',
   fontSize: 20,
-  color: "#efe4ec",
-  lineHeight: 1.8,
-};
+  color: '#efe4ec',
+  lineHeight: 1.8
+}
 
 const terminalLineStyle = {
-  margin: 0,
-};
+  margin: 0
+}
 
 const heroTextWrapStyle = {
-  paddingRight: 10,
-};
+  paddingRight: 10
+}
 
 const heroTitleStyle = (accent) => ({
-  fontSize: "clamp(54px, 7vw, 100px)",
+  fontSize: 'clamp(54px, 7vw, 100px)',
   lineHeight: 0.95,
   margin: 0,
   fontWeight: 900,
   background: accent.gradient,
-  WebkitBackgroundClip: "text",
-  color: "transparent",
-});
+  WebkitBackgroundClip: 'text',
+  color: 'transparent'
+})
 
 const heroUnderlineStyle = {
   height: 6,
-  width: "100%",
-  margin: "18px 0 28px",
-  borderRadius: 999,
-};
+  width: '100%',
+  margin: '18px 0 28px',
+  borderRadius: 999
+}
 
 const heroSubtitleStyle = {
-  fontSize: "clamp(20px, 2vw, 30px)",
-  color: "#d8ccd8",
+  fontSize: 'clamp(20px, 2vw, 30px)',
+  color: '#d8ccd8',
   lineHeight: 1.5,
-  margin: 0,
-};
+  margin: 0
+}
 
 const builderWrapStyle = {
   maxWidth: 1400,
-  margin: "0 auto",
-  padding: "16px 28px 60px",
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
+  margin: '0 auto',
+  padding: '16px 28px 60px',
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
   gap: 28,
-  position: "relative",
-  zIndex: 2,
-};
+  position: 'relative',
+  zIndex: 2
+}
 
 const glassCardStyle = {
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.08)",
+  background: 'rgba(255,255,255,0.06)',
+  border: '1px solid rgba(255,255,255,0.08)',
   borderRadius: 30,
   padding: 28,
-  backdropFilter: "blur(12px)",
-  boxShadow: "0 18px 60px rgba(0,0,0,0.18)",
-};
+  backdropFilter: 'blur(12px)',
+  boxShadow: '0 18px 60px rgba(0,0,0,0.18)'
+}
 
 const cardTitleStyle = {
   marginTop: 0,
   marginBottom: 22,
   fontSize: 34,
-  color: "#fff",
-  fontWeight: 800,
-};
+  color: '#fff',
+  fontWeight: 800
+}
 
 const fieldWrapStyle = {
-  marginBottom: 16,
-};
+  marginBottom: 16
+}
 
 const labelStyle = {
-  display: "block",
+  display: 'block',
   marginBottom: 8,
-  color: "#f2d9e4",
+  color: '#f2d9e4',
   fontSize: 14,
-  fontWeight: 700,
-};
+  fontWeight: 700
+}
 
 const inputStyle = {
-  width: "100%",
-  padding: "15px 16px",
+  width: '100%',
+  padding: '15px 16px',
   borderRadius: 16,
-  border: "1px solid rgba(255,255,255,0.10)",
-  background: "rgba(255,255,255,0.07)",
-  color: "#fff",
+  border: '1px solid rgba(255,255,255,0.10)',
+  background: 'rgba(255,255,255,0.07)',
+  color: '#fff',
   fontSize: 15,
-  outline: "none",
-  boxSizing: "border-box",
-};
+  outline: 'none',
+  boxSizing: 'border-box'
+}
 
 const textareaStyle = {
-  width: "100%",
+  width: '100%',
   minHeight: 180,
-  padding: "16px 18px",
+  padding: '16px 18px',
   borderRadius: 18,
-  border: "1px solid rgba(255,255,255,0.10)",
-  background: "rgba(255,255,255,0.07)",
-  color: "#fff",
+  border: '1px solid rgba(255,255,255,0.10)',
+  background: 'rgba(255,255,255,0.07)',
+  color: '#fff',
   fontSize: 16,
-  outline: "none",
-  resize: "vertical",
-  boxSizing: "border-box",
-  lineHeight: 1.7,
-};
+  outline: 'none',
+  resize: 'vertical',
+  boxSizing: 'border-box',
+  lineHeight: 1.7
+}
 
 const fileInputStyle = {
-  width: "100%",
-  color: "#fff",
-  fontSize: 14,
-};
+  width: '100%',
+  color: '#fff',
+  fontSize: 14
+}
 
 const doubleGridStyle = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
   gap: 12,
-  marginBottom: 12,
-};
+  marginBottom: 12
+}
 
 const tripleGridStyle = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr 1fr",
-  gap: 14,
-};
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr 1fr',
+  gap: 14
+}
 
 const primaryButtonStyle = {
-  width: "100%",
-  border: "none",
+  width: '100%',
+  border: 'none',
   borderRadius: 999,
-  padding: "19px 22px",
-  color: "#fff",
+  padding: '19px 22px',
+  color: '#fff',
   fontSize: 18,
   fontWeight: 900,
-  cursor: "pointer",
+  cursor: 'pointer',
   marginTop: 8,
-  boxShadow: "0 16px 34px rgba(255,110,168,0.26)",
-};
+  boxShadow: '0 16px 34px rgba(255,110,168,0.26)'
+}
 
 const secondaryButtonStyle = {
-  border: "1px solid rgba(255,255,255,0.10)",
+  border: '1px solid rgba(255,255,255,0.10)',
   borderRadius: 16,
-  padding: "15px 16px",
-  background: "rgba(255,255,255,0.08)",
-  color: "#fff",
+  padding: '15px 16px',
+  background: 'rgba(255,255,255,0.08)',
+  color: '#fff',
   fontSize: 15,
   fontWeight: 700,
-  cursor: "pointer",
-};
+  cursor: 'pointer'
+}
 
 const removePhotoButtonStyle = {
-  border: "1px solid rgba(255,255,255,0.10)",
+  border: '1px solid rgba(255,255,255,0.10)',
   borderRadius: 12,
-  padding: "10px 12px",
-  background: "rgba(255,255,255,0.08)",
-  color: "#fff",
+  padding: '10px 12px',
+  background: 'rgba(255,255,255,0.08)',
+  color: '#fff',
   fontSize: 13,
   fontWeight: 700,
-  cursor: "pointer",
-  textAlign: "left",
-};
+  cursor: 'pointer',
+  textAlign: 'left'
+}
 
 const previewMessageStyle = {
   minHeight: 220,
   borderRadius: 22,
   padding: 22,
-  background: "rgba(255,255,255,0.08)",
-  border: "1px solid rgba(255,255,255,0.1)",
-  color: "#fff",
+  background: 'rgba(255,255,255,0.08)',
+  border: '1px solid rgba(255,255,255,0.1)',
+  color: '#fff',
   lineHeight: 1.8,
-  whiteSpace: "pre-wrap",
-  fontSize: 17,
-};
+  whiteSpace: 'pre-wrap',
+  fontSize: 17
+}
 
 const linkBoxStyle = {
   marginTop: 16,
   padding: 16,
   borderRadius: 18,
-  background: "rgba(255,255,255,0.08)",
-  border: "1px solid rgba(255,255,255,0.10)",
-};
+  background: 'rgba(255,255,255,0.08)',
+  border: '1px solid rgba(255,255,255,0.10)'
+}
 
 const linkLabelStyle = {
   fontSize: 13,
-  color: "#f6dce7",
+  color: '#f6dce7',
   marginBottom: 8,
-  fontWeight: 800,
-};
+  fontWeight: 800
+}
 
 const linkTextStyle = {
-  wordBreak: "break-all",
-  color: "#fff",
+  wordBreak: 'break-all',
+  color: '#fff',
   fontSize: 14,
-  lineHeight: 1.6,
-};
+  lineHeight: 1.6
+}
 
 const upsellBoxStyle = {
   marginTop: 22,
   padding: 18,
   borderRadius: 18,
   lineHeight: 1.7,
-  border: "1px solid rgba(255,255,255,0.08)",
-};
+  border: '1px solid rgba(255,255,255,0.08)'
+}
 
 const photoGridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(3, 1fr)",
+  display: 'grid',
+  gridTemplateColumns: 'repeat(3, 1fr)',
   gap: 12,
-  marginTop: 18,
-};
+  marginTop: 18
+}
 
 const photoStyle = {
-  width: "100%",
+  width: '100%',
   height: 180,
-  objectFit: "cover",
+  objectFit: 'cover',
   borderRadius: 18,
-  border: "1px solid rgba(255,255,255,0.10)",
-};
+  border: '1px solid rgba(255,255,255,0.10)'
+}
 
 const mediaCardStyle = {
   marginTop: 18,
   padding: 18,
   borderRadius: 22,
-  background: "rgba(255,255,255,0.07)",
-  border: "1px solid rgba(255,255,255,0.08)",
-};
+  background: 'rgba(255,255,255,0.07)',
+  border: '1px solid rgba(255,255,255,0.08)'
+}
 
 const mediaTitleStyle = {
-  color: "#ffe0ec",
+  color: '#ffe0ec',
   fontWeight: 800,
-  marginBottom: 12,
-};
+  marginBottom: 12
+}
 
 const iframeStyle = {
-  border: "none",
-  borderRadius: 16,
-};
+  border: 'none',
+  borderRadius: 16
+}
 
 const videoWrapStyle = {
-  position: "relative",
-  width: "100%",
-  paddingTop: "56.25%",
+  position: 'relative',
+  width: '100%',
+  paddingTop: '56.25%',
   borderRadius: 18,
-  overflow: "hidden",
-};
+  overflow: 'hidden'
+}
 
 const videoIframeStyle = {
-  position: "absolute",
+  position: 'absolute',
   inset: 0,
-  width: "100%",
-  height: "100%",
-  border: "none",
-};
+  width: '100%',
+  height: '100%',
+  border: 'none'
+}
