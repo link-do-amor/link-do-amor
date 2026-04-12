@@ -100,14 +100,16 @@ export default async function CartinhaPage({ params }) {
 
   const whatsappNumber = String(payload.whatsapp || '').replace(/\D/g, '')
   const whatsappText = encodeURIComponent(
-    payload.toName
-      ? `Oi ${payload.toName}, eu vi sua cartinha 💖`
-      : 'Eu vi sua cartinha 💖'
+    payload.fromName
+      ? `Oi ${payload.fromName}, eu vi sua cartinha e amei 💖`
+      : 'Eu vi sua cartinha e amei 💖'
   )
 
   const whatsappUrl = whatsappNumber
     ? `https://wa.me/55${whatsappNumber}?text=${whatsappText}`
     : `https://wa.me/?text=${whatsappText}`
+
+  const novaCartinhaUrl = '/'
 
   return (
     <main style={pageStyle}>
@@ -117,6 +119,7 @@ export default async function CartinhaPage({ params }) {
         @media (max-width: 1100px) {
           .surprise-layout { grid-template-columns: 1fr !important; }
           .photo-grid { grid-template-columns: 1fr !important; }
+          .reply-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
@@ -124,7 +127,14 @@ export default async function CartinhaPage({ params }) {
         Responda essa mensagem e demonstre seu amor 💖
       </div>
 
-      <div style={starsOverlayStyle} />
+      <div style={heartsOverlayStyle}>
+        <span style={{ ...heartStyle, top: '8%', left: '6%', color: '#ff6b8a' }}>❤</span>
+        <span style={{ ...heartStyle, top: '18%', left: '28%', color: '#ffd166' }}>❤</span>
+        <span style={{ ...heartStyle, top: '12%', right: '10%', color: '#b56cff' }}>❤</span>
+        <span style={{ ...heartStyle, top: '42%', right: '6%', color: '#7ee7ff' }}>❤</span>
+        <span style={{ ...heartStyle, bottom: '18%', left: '10%', color: '#ff9bd2' }}>❤</span>
+        <span style={{ ...heartStyle, bottom: '10%', right: '24%', color: '#c3ff6b' }}>❤</span>
+      </div>
 
       <section className="surprise-layout" style={surpriseLayoutStyle}>
         <div style={leftPanelStyle}>
@@ -213,14 +223,23 @@ export default async function CartinhaPage({ params }) {
               Responda essa mensagem e demonstre seu amor 💖
             </div>
 
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noreferrer"
-              style={{ ...replyButtonStyle, background: accent.gradient }}
-            >
-              {payload.buttonText || 'Responder agora 💖'}
-            </a>
+            <div className="reply-grid" style={replyGridStyle}>
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noreferrer"
+                style={{ ...replyButtonStyle, background: accent.gradient }}
+              >
+                Responder no WhatsApp
+              </a>
+
+              <a
+                href={novaCartinhaUrl}
+                style={{ ...replyButtonStyle, ...secondaryReplyButtonStyle }}
+              >
+                Criar outra cartinha
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -231,7 +250,7 @@ export default async function CartinhaPage({ params }) {
 const pageStyle = {
   minHeight: '100vh',
   background:
-    'radial-gradient(circle at top, rgba(255,98,160,0.16), transparent 20%), radial-gradient(circle at bottom, rgba(181,108,255,0.14), transparent 18%), linear-gradient(180deg, #120613 0%, #0d0714 100%)',
+    'radial-gradient(circle at top, rgba(120,10,25,0.28), transparent 20%), radial-gradient(circle at bottom, rgba(180,35,60,0.18), transparent 18%), linear-gradient(180deg, #1a0208 0%, #120106 100%)',
   color: '#fff',
   fontFamily:
     'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
@@ -250,13 +269,17 @@ const topRibbonStyle = {
   zIndex: 2
 }
 
-const starsOverlayStyle = {
+const heartsOverlayStyle = {
   position: 'absolute',
   inset: 0,
-  backgroundImage: 'radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1px)',
-  backgroundSize: '38px 38px',
-  opacity: 0.14,
-  pointerEvents: 'none'
+  pointerEvents: 'none',
+  opacity: 0.22
+}
+
+const heartStyle = {
+  position: 'absolute',
+  fontSize: 26,
+  textShadow: '0 0 18px rgba(255,255,255,0.18)'
 }
 
 const centerBoxStyle = {
@@ -419,6 +442,12 @@ const ctaTextStyle = {
   textAlign: 'center'
 }
 
+const replyGridStyle = {
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: 12
+}
+
 const replyButtonStyle = {
   width: '100%',
   border: 'none',
@@ -431,6 +460,11 @@ const replyButtonStyle = {
   textDecoration: 'none',
   display: 'block',
   textAlign: 'center'
+}
+
+const secondaryReplyButtonStyle = {
+  background: 'rgba(255,255,255,0.08)',
+  border: '1px solid rgba(255,255,255,0.14)'
 }
 
 const photoGridStyle = {
