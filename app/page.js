@@ -180,7 +180,15 @@ ${from} 💖`
         Agora você pode criar cartinhas com IA, fotos, música e link curto 💖
       </div>
 
-      <div style={starsOverlayStyle} />
+      <div style={heartsOverlayStyle}>
+        <span style={{ ...heartStyle, top: '8%', left: '6%', color: '#ff6b8a' }}>❤</span>
+        <span style={{ ...heartStyle, top: '18%', left: '28%', color: '#ffd166' }}>❤</span>
+        <span style={{ ...heartStyle, top: '12%', right: '10%', color: '#b56cff' }}>❤</span>
+        <span style={{ ...heartStyle, top: '42%', right: '6%', color: '#7ee7ff' }}>❤</span>
+        <span style={{ ...heartStyle, bottom: '18%', left: '10%', color: '#ff9bd2' }}>❤</span>
+        <span style={{ ...heartStyle, bottom: '10%', right: '24%', color: '#c3ff6b' }}>❤</span>
+        <span style={{ ...heartStyle, bottom: '28%', left: '46%', color: '#ffb86b' }}>❤</span>
+      </div>
 
       <section className="hero-grid" style={heroStyle}>
         <div style={terminalCardStyle}>
@@ -557,7 +565,7 @@ function ResponsiveStyles() {
 const pageStyle = {
   minHeight: '100vh',
   background:
-    'radial-gradient(circle at top, rgba(255,98,160,0.16), transparent 20%), radial-gradient(circle at bottom, rgba(181,108,255,0.14), transparent 18%), linear-gradient(180deg, #120613 0%, #0d0714 100%)',
+    'radial-gradient(circle at top, rgba(120,10,25,0.28), transparent 20%), radial-gradient(circle at bottom, rgba(180,35,60,0.18), transparent 18%), linear-gradient(180deg, #1a0208 0%, #120106 100%)',
   color: '#fff',
   fontFamily:
     'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
@@ -565,13 +573,17 @@ const pageStyle = {
   overflow: 'hidden'
 }
 
-const starsOverlayStyle = {
+const heartsOverlayStyle = {
   position: 'absolute',
   inset: 0,
-  backgroundImage: 'radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1px)',
-  backgroundSize: '38px 38px',
-  opacity: 0.14,
-  pointerEvents: 'none'
+  pointerEvents: 'none',
+  opacity: 0.22
+}
+
+const heartStyle = {
+  position: 'absolute',
+  fontSize: 26,
+  textShadow: '0 0 18px rgba(255,255,255,0.18)'
 }
 
 const topRibbonStyle = {
@@ -648,8 +660,8 @@ const heroTextWrapStyle = {
 }
 
 const heroTitleStyle = (accent) => ({
-  fontSize: 'clamp(54px, 7vw, 100px)',
-  lineHeight: 0.95,
+  fontSize: 'clamp(40px, 5vw, 74px)',
+  lineHeight: 0.98,
   margin: 0,
   fontWeight: 900,
   background: accent.gradient,
@@ -665,8 +677,8 @@ const heroUnderlineStyle = {
 }
 
 const heroSubtitleStyle = {
-  fontSize: 'clamp(20px, 2vw, 30px)',
-  color: '#d8ccd8',
+  fontSize: 'clamp(18px, 1.7vw, 24px)',
+  color: '#ead8df',
   lineHeight: 1.5,
   margin: 0
 }
