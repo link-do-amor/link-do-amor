@@ -112,15 +112,23 @@ ${from} 💖`;
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...form,
+          fromName: form.fromName,
+          toName: form.toName,
+          message: form.message,
+          musicUrl: form.musicUrl,
+          whatsapp: form.whatsapp,
+          buttonText: form.buttonText,
+          accent: form.accent,
+          tone: form.tone,
+          memory: form.memory,
           photos,
         }),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
-        alert(data?.details || data?.error || "Erro ao criar cartinha.");
+      if (!response.ok || !data.slug) {
+        alert(data?.details || data?.error || "Erro ao gerar link curto.");
         return;
       }
 
@@ -131,7 +139,7 @@ ${from} 💖`;
         window.open(link, "_blank");
       }
     } catch (error) {
-      alert("Erro ao criar cartinha.");
+      alert("Erro ao gerar link curto.");
     } finally {
       setSaving(false);
     }
@@ -169,7 +177,7 @@ ${from} 💖`;
       <ResponsiveStyles />
 
       <div style={{ ...topRibbonStyle, background: accent.gradient }}>
-        Agora você pode criar cartinhas com IA, fotos, música e CTA de resposta 💖
+        Agora você pode criar cartinhas com IA, fotos, música e link curto 💖
       </div>
 
       <div style={starsOverlayStyle} />
@@ -369,7 +377,7 @@ ${from} 💖`;
 
           <div className="double-grid" style={doubleGridStyle}>
             <button type="button" onClick={() => createCartinha(false)} style={secondaryButtonStyle}>
-              {saving ? "Salvando..." : "Gerar link curto"}
+              {saving ? "Gerando link..." : "Gerar link curto"}
             </button>
 
             <button type="button" onClick={copyLink} style={secondaryButtonStyle}>
