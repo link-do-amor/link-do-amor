@@ -11,6 +11,8 @@ export default function Home() {
     whatsapp: "",
     buttonText: "Responder agora 💖",
     accent: "rosa",
+    tone: "romântico elegante",
+    memory: "",
   });
 
   const [photos, setPhotos] = useState([]);
@@ -18,6 +20,7 @@ export default function Home() {
   const [copiedMessage, setCopiedMessage] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isSurpriseMode, setIsSurpriseMode] = useState(false);
+  const [loadingAi, setLoadingAi] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -30,8 +33,10 @@ export default function Home() {
     const whatsapp = params.get("whatsapp") || "";
     const buttonText = params.get("buttonText") || "Responder agora 💖";
     const accent = params.get("accent") || "rosa";
+    const tone = params.get("tone") || "romântico elegante";
+    const memory = params.get("memory") || "";
 
-    if (from || to || msg || music || imgs || whatsapp) {
+    if (from || to || msg || music || imgs || whatsapp || memory) {
       setForm({
         fromName: from,
         toName: to,
@@ -40,6 +45,8 @@ export default function Home() {
         whatsapp,
         buttonText,
         accent,
+        tone,
+        memory,
       });
 
       if (imgs) {
@@ -73,24 +80,47 @@ export default function Home() {
     });
   }
 
-  function generateRomanticMessage() {
+  function removePhoto(indexToRemove) {
+    setPhotos((prev) => prev.filter((_, index) => index !== indexToRemove));
+  }
+
+  function buildAiMessage() {
     const to = form.toName || "você";
     const from = form.fromName || "alguém que te ama";
-    const memoryBlock = form.message?.trim()
-      ? form.message.trim()
-      : `Desde que ${to} chegou, tudo ficou mais bonito. Você transformou momentos simples em lembranças que eu quero guardar para sempre.
 
-Tem algo em você que acalma, inspira e faz o coração sorrir sem pedir licença.
+    const toneText =
+      form.tone === "fofo delicado"
+        ? "de um jeito doce, leve e cheio de carinho"
+        : form.tone === "apaixonado intenso"
+        ? "de um jeito intenso, profundo e impossível de esconder"
+        : "de um jeito elegante, sincero e cheio de sentimento";
 
-Essa cartinha é só um jeito de te lembrar o quanto você é especial pra mim e como sua presença deixa tudo mais leve, mais bonito e mais cheio de sentido.
+    const memoryText = form.memory?.trim()
+      ? `Eu guardo com muito carinho cada detalhe de ${form.memory}, como se fosse um dos capítulos mais bonitos da nossa história. `
+      : "";
 
-Com todo meu carinho,
+    return `Desde que ${to} chegou, minha vida ganhou um brilho diferente. ✨
+
+${memoryText}Tem algo em você que me traz paz, me faz sorrir sem perceber e transforma momentos simples em lembranças inesquecíveis.
+
+Eu queria te dizer ${toneText} o quanto você é especial pra mim. Sua presença deixa tudo mais bonito, mais leve e mais cheio de sentido.
+
+Talvez eu nunca consiga colocar em palavras tudo o que sinto, mas ainda assim faço questão de tentar — porque você merece saber o tamanho do carinho que existe aqui dentro.
+
+Com todo meu amor e admiração,
 ${from} 💖`;
+  }
 
-    setForm((prev) => ({
-      ...prev,
-      message: memoryBlock,
-    }));
+  function generateAiMessage() {
+    setLoadingAi(true);
+
+    setTimeout(() => {
+      setForm((prev) => ({
+        ...prev,
+        message: buildAiMessage(),
+      }));
+      setLoadingAi(false);
+    }, 1000);
   }
 
   async function copyMessage() {
@@ -110,6 +140,8 @@ ${from} 💖`;
       whatsapp: form.whatsapp,
       buttonText: form.buttonText,
       accent: form.accent,
+      tone: form.tone,
+      memory: form.memory,
     });
   }
 
@@ -179,19 +211,21 @@ ${from} 💖`;
     };
   }, [form.accent]);
 
-  const mediaType = getMediaType(form.musicUrl);
-  const mediaEmbedUrl = getEmbedUrl(form.musicUrl);
+  const mediaType = useMemo(() => getMediaType(form.musicUrl), [form.musicUrl]);
+  const mediaEmbedUrl = useMemo(() => getEmbedUrl(form.musicUrl), [form.musicUrl]);
 
   if (isSurpriseMode) {
     return (
       <main style={pageStyle}>
+        <ResponsiveStyles />
+
         <div style={{ ...topRibbonStyle, background: accent.gradient }}>
           Responda essa mensagem e demonstre seu amor 💖
         </div>
 
         <div style={starsOverlayStyle} />
 
-        <section style={surpriseLayoutStyle}>
+        <section className="surprise-layout" style={surpriseLayoutStyle}>
           <div style={leftPanelStyle}>
             <div style={terminalHeaderStyle}>
               <div style={terminalDotsStyle}>
@@ -212,7 +246,7 @@ ${from} 💖`;
             </div>
 
             {photos.length > 0 && (
-              <div style={photoGridStyle}>
+              <div className="photo-grid" style={{ ...photoGridStyle, padding: 20 }}>
                 {photos.map((photo, index) => (
                   <img key={index} src={photo} alt={`Foto ${index + 1}`} style={photoStyle} />
                 ))}
@@ -291,13 +325,15 @@ ${from} 💖`;
 
   return (
     <main style={pageStyle}>
+      <ResponsiveStyles />
+
       <div style={{ ...topRibbonStyle, background: accent.gradient }}>
-        Agora você pode criar cartinhas com fotos, música e um CTA para resposta 💖
+        Agora você pode criar cartinhas com IA, fotos, música e CTA de resposta 💖
       </div>
 
       <div style={starsOverlayStyle} />
 
-      <section style={heroStyle}>
+      <section className="hero-grid" style={heroStyle}>
         <div style={terminalCardStyle}>
           <div style={terminalHeaderStyle}>
             <div style={terminalDotsStyle}>
@@ -315,12 +351,13 @@ ${from} 💖`;
             <p style={terminalLineStyle}>│ De: {form.fromName || "João"}</p>
             <p style={terminalLineStyle}>└──────────────────────────────</p>
             <br />
-            <p style={terminalLineStyle}>[1/6] 💌 Mensagem</p>
-            <p style={terminalLineStyle}>[2/6] 📸 Fotos</p>
-            <p style={terminalLineStyle}>[3/6] 🎵 Música</p>
-            <p style={terminalLineStyle}>[4/6] 🔗 Link</p>
-            <p style={terminalLineStyle}>[5/6] ✨ Surpresa</p>
-            <p style={terminalLineStyle}>[6/6] ❤️ Resposta</p>
+            <p style={terminalLineStyle}>[1/7] 🤖 IA</p>
+            <p style={terminalLineStyle}>[2/7] 💌 Mensagem</p>
+            <p style={terminalLineStyle}>[3/7] 📸 Fotos</p>
+            <p style={terminalLineStyle}>[4/7] 🎵 Música</p>
+            <p style={terminalLineStyle}>[5/7] 🔗 Link</p>
+            <p style={terminalLineStyle}>[6/7] ✨ Surpresa</p>
+            <p style={terminalLineStyle}>[7/7] ❤️ Resposta</p>
           </div>
         </div>
 
@@ -336,37 +373,61 @@ ${from} 💖`;
           <div style={{ ...heroUnderlineStyle, background: accent.gradient }} />
 
           <p style={heroSubtitleStyle}>
-            Cartinhas digitais com fotos, música e muito amor.
+            Cartinhas digitais com IA, fotos, música e muito amor.
             <br />
             Envie e aumente a chance de resposta com uma CTA emocional no final.
           </p>
         </div>
       </section>
 
-      <section style={builderWrapStyle}>
+      <section className="builder-grid" style={builderWrapStyle}>
         <div style={glassCardStyle}>
           <h2 style={cardTitleStyle}>Monte sua cartinha</h2>
 
-          <div style={fieldWrapStyle}>
-            <label style={labelStyle}>Seu nome</label>
-            <input
-              name="fromName"
-              value={form.fromName}
-              onChange={handleChange}
-              placeholder="Ex: Fábio"
-              style={inputStyle}
-            />
+          <div className="double-grid" style={doubleGridStyle}>
+            <div style={fieldWrapStyle}>
+              <label style={labelStyle}>Seu nome</label>
+              <input
+                name="fromName"
+                value={form.fromName}
+                onChange={handleChange}
+                placeholder="Ex: Fábio"
+                style={inputStyle}
+              />
+            </div>
+
+            <div style={fieldWrapStyle}>
+              <label style={labelStyle}>Nome da pessoa</label>
+              <input
+                name="toName"
+                value={form.toName}
+                onChange={handleChange}
+                placeholder="Ex: Ana"
+                style={inputStyle}
+              />
+            </div>
           </div>
 
-          <div style={fieldWrapStyle}>
-            <label style={labelStyle}>Nome da pessoa</label>
-            <input
-              name="toName"
-              value={form.toName}
-              onChange={handleChange}
-              placeholder="Ex: Ana"
-              style={inputStyle}
-            />
+          <div className="double-grid" style={doubleGridStyle}>
+            <div style={fieldWrapStyle}>
+              <label style={labelStyle}>Tom da IA</label>
+              <select name="tone" value={form.tone} onChange={handleChange} style={inputStyle}>
+                <option value="romântico elegante">Romântico elegante</option>
+                <option value="fofo delicado">Fofo delicado</option>
+                <option value="apaixonado intenso">Apaixonado intenso</option>
+              </select>
+            </div>
+
+            <div style={fieldWrapStyle}>
+              <label style={labelStyle}>Lembrança especial</label>
+              <input
+                name="memory"
+                value={form.memory}
+                onChange={handleChange}
+                placeholder="Ex: nossa primeira viagem"
+                style={inputStyle}
+              />
+            </div>
           </div>
 
           <div style={fieldWrapStyle}>
@@ -375,12 +436,12 @@ ${from} 💖`;
               name="message"
               value={form.message}
               onChange={handleChange}
-              placeholder="Escreva sua mensagem aqui..."
+              placeholder="Escreva sua mensagem aqui ou use a IA para gerar uma..."
               style={textareaStyle}
             />
           </div>
 
-          <div style={tripleGridStyle}>
+          <div className="triple-grid" style={tripleGridStyle}>
             <div style={fieldWrapStyle}>
               <label style={labelStyle}>Fotos (até 3)</label>
               <input
@@ -390,6 +451,20 @@ ${from} 💖`;
                 onChange={handlePhotosUpload}
                 style={fileInputStyle}
               />
+
+              {photos.length > 0 && (
+                <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+                  {photos.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => removePhoto(index)}
+                      style={removePhotoButtonStyle}
+                    >
+                      Remover foto {index + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div style={fieldWrapStyle}>
@@ -415,7 +490,7 @@ ${from} 💖`;
             </div>
           </div>
 
-          <div style={doubleGridStyle}>
+          <div className="double-grid" style={doubleGridStyle}>
             <div style={fieldWrapStyle}>
               <label style={labelStyle}>Texto do botão final</label>
               <input
@@ -437,9 +512,12 @@ ${from} 💖`;
             </div>
           </div>
 
-          <div style={doubleGridStyle}>
-            <button onClick={generateRomanticMessage} style={{ ...secondaryButtonStyle, color: "#fff" }}>
-              Gerar mensagem romântica
+          <div className="double-grid" style={doubleGridStyle}>
+            <button
+              onClick={generateAiMessage}
+              style={{ ...secondaryButtonStyle, color: "#fff" }}
+            >
+              {loadingAi ? "Gerando com IA..." : "Gerar mensagem com IA"}
             </button>
 
             <button onClick={copyMessage} style={secondaryButtonStyle}>
@@ -447,7 +525,7 @@ ${from} 💖`;
             </button>
           </div>
 
-          <div style={doubleGridStyle}>
+          <div className="double-grid" style={doubleGridStyle}>
             <button onClick={generateShareLink} style={secondaryButtonStyle}>
               Gerar link da surpresa
             </button>
@@ -457,7 +535,10 @@ ${from} 💖`;
             </button>
           </div>
 
-          <button onClick={openSurprise} style={{ ...primaryButtonStyle, background: accent.gradient }}>
+          <button
+            onClick={openSurprise}
+            style={{ ...primaryButtonStyle, background: accent.gradient }}
+          >
             Criar Minha Cartinha ❯
           </button>
 
@@ -477,7 +558,7 @@ ${from} 💖`;
           </div>
 
           {photos.length > 0 && (
-            <div style={photoGridStyle}>
+            <div className="photo-grid" style={photoGridStyle}>
               {photos.map((photo, index) => (
                 <img key={index} src={photo} alt={`Preview ${index + 1}`} style={photoStyle} />
               ))}
@@ -532,7 +613,6 @@ ${from} 💖`;
 
 function getMediaType(url) {
   if (!url) return "none";
-
   const lower = url.toLowerCase();
 
   if (
@@ -544,13 +624,8 @@ function getMediaType(url) {
     return "audio";
   }
 
-  if (lower.includes("spotify.com")) {
-    return "spotify";
-  }
-
-  if (lower.includes("youtube.com") || lower.includes("youtu.be")) {
-    return "youtube";
-  }
+  if (lower.includes("spotify.com")) return "spotify";
+  if (lower.includes("youtube.com") || lower.includes("youtu.be")) return "youtube";
 
   return "none";
 }
@@ -578,6 +653,50 @@ function getEmbedUrl(url) {
   } catch {
     return "";
   }
+}
+
+function ResponsiveStyles() {
+  return (
+    <style jsx global>{`
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: rgba(255, 255, 255, 0.55);
+      }
+
+      select,
+      input,
+      textarea,
+      button {
+        font: inherit;
+      }
+
+      @media (max-width: 1100px) {
+        .hero-grid,
+        .builder-grid,
+        .surprise-layout {
+          grid-template-columns: 1fr !important;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .double-grid,
+        .triple-grid,
+        .photo-grid {
+          grid-template-columns: 1fr !important;
+        }
+      }
+    `}</style>
+  );
 }
 
 const pageStyle = {
@@ -805,6 +924,18 @@ const secondaryButtonStyle = {
   fontSize: 15,
   fontWeight: 700,
   cursor: "pointer",
+};
+
+const removePhotoButtonStyle = {
+  border: "1px solid rgba(255,255,255,0.10)",
+  borderRadius: 12,
+  padding: "10px 12px",
+  background: "rgba(255,255,255,0.08)",
+  color: "#fff",
+  fontSize: 13,
+  fontWeight: 700,
+  cursor: "pointer",
+  textAlign: "left",
 };
 
 const previewMessageStyle = {
