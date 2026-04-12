@@ -1,39 +1,52 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function Home() {
   const [form, setForm] = useState({
     fromName: "",
     toName: "",
-    memory: "",
-    tone: "romântico elegante",
+    message: "",
+    musicUrl: "",
+    whatsapp: "",
+    buttonText: "Responder agora 💖",
+    accent: "rosa",
   });
 
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [photos, setPhotos] = useState([]);
   const [shareLink, setShareLink] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [copiedMessage, setCopiedMessage] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [isSurpriseMode, setIsSurpriseMode] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const fromName = params.get("from") || "";
-    const toName = params.get("to") || "";
-    const memory = params.get("memory") || "";
-    const tone = params.get("tone") || "romântico elegante";
-    const msg = params.get("msg") || "";
 
-    if (fromName || toName || memory || msg) {
+    const from = params.get("from") || "";
+    const to = params.get("to") || "";
+    const msg = params.get("msg") || "";
+    const music = params.get("music") || "";
+    const imgs = params.get("imgs") || "";
+    const whatsapp = params.get("whatsapp") || "";
+    const buttonText = params.get("buttonText") || "Responder agora 💖";
+    const accent = params.get("accent") || "rosa";
+
+    if (from || to || msg || music || imgs || whatsapp) {
       setForm({
-        fromName,
-        toName,
-        memory,
-        tone,
+        fromName: from,
+        toName: to,
+        message: msg,
+        musicUrl: music,
+        whatsapp,
+        buttonText,
+        accent,
       });
 
-      if (msg) {
-        setMessage(msg);
+      if (imgs) {
+        setPhotos(imgs.split("|").filter(Boolean));
       }
+
+      setIsSurpriseMode(true);
     }
   }, []);
 
@@ -42,295 +55,474 @@ export default function Home() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function buildMessage() {
-    const toneText =
-      form.tone === "fofo delicado"
-        ? "de um jeito doce, leve e cheio de carinho"
-        : form.tone === "apaixonado intenso"
-        ? "de um jeito intenso, profundo e impossível de esconder"
-        : "de um jeito elegante, sincero e cheio de sentimento";
+  function handlePhotosUpload(e) {
+    const files = Array.from(e.target.files || []).slice(0, 3);
+    if (!files.length) return;
 
-    return `Desde que ${form.toName || "você"} chegou, minha vida ganhou um brilho diferente. ✨
-
-${form.memory ? `Eu guardo com carinho cada detalhe de ${form.memory}, como se fosse um dos capítulos mais bonitos da nossa história. ` : ""}
-
-Tem algo em você que me traz paz, me faz sorrir sem perceber e transforma momentos simples em lembranças inesquecíveis.
-
-Eu queria te dizer ${toneText} o quanto você é especial pra mim. Você tem um lugar muito bonito no meu coração.
-
-${form.fromName ? `Com todo meu carinho, ${form.fromName}. ❤️` : "❤️"}`;
+    Promise.all(
+      files.map(
+        (file) =>
+          new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(file);
+          })
+      )
+    ).then((results) => {
+      setPhotos(results);
+    });
   }
 
-  function generateMessage() {
-    setLoading(true);
-    setCopied(false);
+  function generateRomanticMessage() {
+    const to = form.toName || "você";
+    const from = form.fromName || "alguém que te ama";
+    const memoryBlock = form.message?.trim()
+      ? form.message.trim()
+      : `Desde que ${to} chegou, tudo ficou mais bonito. Você transformou momentos simples em lembranças que eu quero guardar para sempre.
 
-    setTimeout(() => {
-      const generated = buildMessage();
-      setMessage(generated);
-      setLoading(false);
-    }, 1000);
-  }
+Tem algo em você que acalma, inspira e faz o coração sorrir sem pedir licença.
 
-  function handleMessageChange(e) {
-    setMessage(e.target.value);
+Essa cartinha é só um jeito de te lembrar o quanto você é especial pra mim e como sua presença deixa tudo mais leve, mais bonito e mais cheio de sentido.
+
+Com todo meu carinho,
+${from} 💖`;
+
+    setForm((prev) => ({
+      ...prev,
+      message: memoryBlock,
+    }));
   }
 
   async function copyMessage() {
-    if (!message) return;
-    await navigator.clipboard.writeText(message);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (!form.message) return;
+    await navigator.clipboard.writeText(form.message);
+    setCopiedMessage(true);
+    setTimeout(() => setCopiedMessage(false), 1800);
+  }
+
+  function buildParams() {
+    return new URLSearchParams({
+      from: form.fromName,
+      to: form.toName,
+      msg: form.message,
+      music: form.musicUrl,
+      imgs: photos.join("|"),
+      whatsapp: form.whatsapp,
+      buttonText: form.buttonText,
+      accent: form.accent,
+    });
   }
 
   function generateShareLink() {
-    const finalMessage = message || buildMessage();
-
-    const params = new URLSearchParams({
-      from: form.fromName,
-      to: form.toName,
-      memory: form.memory,
-      tone: form.tone,
-      msg: finalMessage,
-    });
-
-    const link = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+    const link = `${window.location.origin}${window.location.pathname}?${buildParams().toString()}`;
     setShareLink(link);
   }
 
-  function shareWhatsApp() {
-    const finalText = encodeURIComponent(
-      `${form.toName ? `${form.toName}, ` : ""}fiz isso pra você 💖\n\n${shareLink || window.location.href}`
-    );
-
-    window.open(`https://wa.me/?text=${finalText}`, "_blank");
+  async function copyLink() {
+    if (!shareLink) return;
+    await navigator.clipboard.writeText(shareLink);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 1800);
   }
 
-  function clearMessage() {
-    setMessage("");
-    setCopied(false);
+  function openSurprise() {
+    const url = `${window.location.origin}${window.location.pathname}?${buildParams().toString()}`;
+    window.open(url, "_blank");
   }
 
-  return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(180deg, #f7d7de 0%, #e7b0bb 100%)",
-        padding: "40px 20px",
-        fontFamily: "Georgia, serif",
-      }}
-    >
-      <section
-        style={{
-          maxWidth: 1100,
-          margin: "0 auto",
-          background: "rgba(255,255,255,0.88)",
-          borderRadius: 32,
-          padding: 40,
-          boxShadow: "0 20px 60px rgba(0,0,0,0.08)",
-        }}
-      >
-        <div style={{ textAlign: "center", marginBottom: 30 }}>
-          <div
-            style={{
-              display: "inline-block",
-              padding: "8px 16px",
-              borderRadius: 999,
-              background: "#fff",
-              color: "#b04b68",
-              fontSize: 14,
-              marginBottom: 18,
-            }}
-          >
-            Link do Amor 💗
-          </div>
+  function openWhatsAppReply() {
+    const number = (form.whatsapp || "").replace(/\D/g, "");
+    const baseText = form.toName
+      ? `Oi ${form.toName}, eu vi sua cartinha 💖`
+      : "Eu vi sua cartinha 💖";
 
-          <h1
-            style={{
-              margin: 0,
-              fontSize: 52,
-              color: "#4a2030",
-              lineHeight: 1.1,
-            }}
-          >
-            Crie uma surpresa
-            <br />
-            romântica inesquecível 💖
-          </h1>
+    if (number) {
+      window.open(`https://wa.me/55${number}?text=${encodeURIComponent(baseText)}`, "_blank");
+      return;
+    }
 
-          <p
-            style={{
-              maxWidth: 700,
-              margin: "18px auto 0",
-              fontSize: 18,
-              color: "#6b4b56",
-              lineHeight: 1.6,
-            }}
-          >
-            Gere uma mensagem especial, edite do seu jeito, escreva a sua própria
-            versão e compartilhe um link único para surpreender quem você ama.
-          </p>
+    window.open(`https://wa.me/?text=${encodeURIComponent(baseText)}`, "_blank");
+  }
+
+  function backToEditor() {
+    window.history.replaceState({}, "", window.location.pathname);
+    setIsSurpriseMode(false);
+  }
+
+  const accent = useMemo(() => {
+    if (form.accent === "roxo") {
+      return {
+        primary: "#d06cff",
+        secondary: "#8b5cf6",
+        soft: "rgba(208,108,255,0.16)",
+        gradient: "linear-gradient(90deg, #d06cff, #8b5cf6)",
+        text: "#f3ddff",
+      };
+    }
+
+    if (form.accent === "vinho") {
+      return {
+        primary: "#c9476d",
+        secondary: "#7c1635",
+        soft: "rgba(201,71,109,0.16)",
+        gradient: "linear-gradient(90deg, #d85f87, #7c1635)",
+        text: "#ffdce8",
+      };
+    }
+
+    return {
+      primary: "#ff6ea8",
+      secondary: "#b56cff",
+      soft: "rgba(255,110,168,0.16)",
+      gradient: "linear-gradient(90deg, #ff6ea8, #b56cff)",
+      text: "#ffe0ed",
+    };
+  }, [form.accent]);
+
+  const mediaType = getMediaType(form.musicUrl);
+  const mediaEmbedUrl = getEmbedUrl(form.musicUrl);
+
+  if (isSurpriseMode) {
+    return (
+      <main style={pageStyle}>
+        <div style={{ ...topRibbonStyle, background: accent.gradient }}>
+          Responda essa mensagem e demonstre seu amor 💖
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 24,
-          }}
-        >
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 24,
-              padding: 24,
-              boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
-            }}
-          >
-            <h2 style={titleStyle}>Personalize sua mensagem</h2>
+        <div style={starsOverlayStyle} />
 
-            <div style={{ display: "grid", gap: 16 }}>
-              <div>
-                <label style={labelStyle}>Seu nome</label>
-                <input
-                  name="fromName"
-                  value={form.fromName}
-                  onChange={handleChange}
-                  placeholder="Ex: Fábio"
-                  style={inputStyle}
-                />
+        <section style={surpriseLayoutStyle}>
+          <div style={leftPanelStyle}>
+            <div style={terminalHeaderStyle}>
+              <div style={terminalDotsStyle}>
+                <span style={{ ...dotStyle, background: "#ff6b8a" }} />
+                <span style={{ ...dotStyle, background: "#ff89a1" }} />
+                <span style={{ ...dotStyle, background: "#ffadc0" }} />
               </div>
+              <div style={terminalFileStyle}>cartinha.txt</div>
+            </div>
 
-              <div>
-                <label style={labelStyle}>Nome da pessoa</label>
-                <input
-                  name="toName"
-                  value={form.toName}
-                  onChange={handleChange}
-                  placeholder="Ex: Ana"
-                  style={inputStyle}
-                />
+            <div style={terminalBodyStyle}>
+              <p style={terminalLineStyle}>┌─ Cartinha Especial Criada</p>
+              <p style={terminalLineStyle}>│</p>
+              <p style={terminalLineStyle}>│ Para: {form.toName || "Pessoa especial"}</p>
+              <p style={terminalLineStyle}>│ De: {form.fromName || "Alguém especial"}</p>
+              <p style={terminalLineStyle}>│ Status: entregue com amor</p>
+              <p style={terminalLineStyle}>└──────────────────────────────</p>
+            </div>
+
+            {photos.length > 0 && (
+              <div style={photoGridStyle}>
+                {photos.map((photo, index) => (
+                  <img key={index} src={photo} alt={`Foto ${index + 1}`} style={photoStyle} />
+                ))}
               </div>
+            )}
+          </div>
 
-              <div>
-                <label style={labelStyle}>Lembrança especial</label>
-                <textarea
-                  name="memory"
-                  value={form.memory}
-                  onChange={handleChange}
-                  placeholder="Ex: nossa primeira viagem, nosso primeiro encontro..."
-                  style={{ ...inputStyle, minHeight: 120, resize: "vertical" }}
-                />
+          <div style={rightPanelStyle}>
+            <div style={badgeStyle(accent)}>Mensagem Especial 💌</div>
+
+            <h1 style={surpriseTitleStyle(accent)}>
+              {form.toName ? `${form.toName}, essa cartinha é sua` : "Essa cartinha é sua"}
+            </h1>
+
+            <div style={messageBoxStyle}>
+              {form.message || "Uma mensagem especial foi preparada para você."}
+            </div>
+
+            {mediaType !== "none" && (
+              <div style={mediaCardStyle}>
+                <div style={mediaTitleStyle}>Nossa música 🎵</div>
+
+                {mediaType === "audio" && (
+                  <audio controls style={{ width: "100%" }}>
+                    <source src={form.musicUrl} />
+                    Seu navegador não suporta áudio.
+                  </audio>
+                )}
+
+                {mediaType === "spotify" && mediaEmbedUrl && (
+                  <iframe
+                    src={mediaEmbedUrl}
+                    width="100%"
+                    height="152"
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy"
+                    style={iframeStyle}
+                  />
+                )}
+
+                {mediaType === "youtube" && mediaEmbedUrl && (
+                  <div style={videoWrapStyle}>
+                    <iframe
+                      src={mediaEmbedUrl}
+                      title="YouTube player"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      style={videoIframeStyle}
+                    />
+                  </div>
+                )}
               </div>
+            )}
 
-              <div>
-                <label style={labelStyle}>Tom da mensagem</label>
-                <select
-                  name="tone"
-                  value={form.tone}
-                  onChange={handleChange}
-                  style={inputStyle}
-                >
-                  <option>romântico elegante</option>
-                  <option>fofo delicado</option>
-                  <option>apaixonado intenso</option>
-                </select>
+            <div style={{ ...ctaBoxStyle, background: accent.soft }}>
+              <div style={ctaTextStyle}>
+                Responda essa mensagem e demonstre seu amor 💖
               </div>
 
               <button
-                onClick={generateMessage}
-                style={buttonStylePrimary}
-                onMouseOver={(e) => (e.target.style.opacity = 0.9)}
-                onMouseOut={(e) => (e.target.style.opacity = 1)}
+                onClick={openWhatsAppReply}
+                style={{ ...replyButtonStyle, background: accent.gradient }}
               >
-                {loading ? "Gerando..." : "Gerar mensagem com IA"}
+                {form.buttonText || "Responder agora 💖"}
               </button>
+            </div>
+
+            <button onClick={backToEditor} style={backButtonStyle}>
+              Voltar para edição
+            </button>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main style={pageStyle}>
+      <div style={{ ...topRibbonStyle, background: accent.gradient }}>
+        Agora você pode criar cartinhas com fotos, música e um CTA para resposta 💖
+      </div>
+
+      <div style={starsOverlayStyle} />
+
+      <section style={heroStyle}>
+        <div style={terminalCardStyle}>
+          <div style={terminalHeaderStyle}>
+            <div style={terminalDotsStyle}>
+              <span style={{ ...dotStyle, background: "#ff6b8a" }} />
+              <span style={{ ...dotStyle, background: "#ff89a1" }} />
+              <span style={{ ...dotStyle, background: "#ffadc0" }} />
+            </div>
+            <div style={terminalFileStyle}>cartinha.txt</div>
+          </div>
+
+          <div style={terminalBodyStyle}>
+            <p style={terminalLineStyle}>┌─ Criando Cartinha Especial</p>
+            <p style={terminalLineStyle}>│</p>
+            <p style={terminalLineStyle}>│ Para: {form.toName || "Maria"}</p>
+            <p style={terminalLineStyle}>│ De: {form.fromName || "João"}</p>
+            <p style={terminalLineStyle}>└──────────────────────────────</p>
+            <br />
+            <p style={terminalLineStyle}>[1/6] 💌 Mensagem</p>
+            <p style={terminalLineStyle}>[2/6] 📸 Fotos</p>
+            <p style={terminalLineStyle}>[3/6] 🎵 Música</p>
+            <p style={terminalLineStyle}>[4/6] 🔗 Link</p>
+            <p style={terminalLineStyle}>[5/6] ✨ Surpresa</p>
+            <p style={terminalLineStyle}>[6/6] ❤️ Resposta</p>
+          </div>
+        </div>
+
+        <div style={heroTextWrapStyle}>
+          <h1 style={heroTitleStyle(accent)}>
+            Crie cartinhas
+            <br />
+            para uma pessoa
+            <br />
+            especial
+          </h1>
+
+          <div style={{ ...heroUnderlineStyle, background: accent.gradient }} />
+
+          <p style={heroSubtitleStyle}>
+            Cartinhas digitais com fotos, música e muito amor.
+            <br />
+            Envie e aumente a chance de resposta com uma CTA emocional no final.
+          </p>
+        </div>
+      </section>
+
+      <section style={builderWrapStyle}>
+        <div style={glassCardStyle}>
+          <h2 style={cardTitleStyle}>Monte sua cartinha</h2>
+
+          <div style={fieldWrapStyle}>
+            <label style={labelStyle}>Seu nome</label>
+            <input
+              name="fromName"
+              value={form.fromName}
+              onChange={handleChange}
+              placeholder="Ex: Fábio"
+              style={inputStyle}
+            />
+          </div>
+
+          <div style={fieldWrapStyle}>
+            <label style={labelStyle}>Nome da pessoa</label>
+            <input
+              name="toName"
+              value={form.toName}
+              onChange={handleChange}
+              placeholder="Ex: Ana"
+              style={inputStyle}
+            />
+          </div>
+
+          <div style={fieldWrapStyle}>
+            <label style={labelStyle}>Mensagem</label>
+            <textarea
+              name="message"
+              value={form.message}
+              onChange={handleChange}
+              placeholder="Escreva sua mensagem aqui..."
+              style={textareaStyle}
+            />
+          </div>
+
+          <div style={tripleGridStyle}>
+            <div style={fieldWrapStyle}>
+              <label style={labelStyle}>Fotos (até 3)</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handlePhotosUpload}
+                style={fileInputStyle}
+              />
+            </div>
+
+            <div style={fieldWrapStyle}>
+              <label style={labelStyle}>Link da música</label>
+              <input
+                name="musicUrl"
+                value={form.musicUrl}
+                onChange={handleChange}
+                placeholder="Spotify, YouTube ou mp3"
+                style={inputStyle}
+              />
+            </div>
+
+            <div style={fieldWrapStyle}>
+              <label style={labelStyle}>WhatsApp para resposta</label>
+              <input
+                name="whatsapp"
+                value={form.whatsapp}
+                onChange={handleChange}
+                placeholder="Ex: 11999999999"
+                style={inputStyle}
+              />
             </div>
           </div>
 
-          <div
-            style={{
-              background: "linear-gradient(180deg, #fff7f9 0%, #fff 100%)",
-              borderRadius: 24,
-              padding: 24,
-              boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
-              border: "1px solid #f1d7de",
-            }}
-          >
-            <h2 style={titleStyle}>Escreva ou edite sua mensagem</h2>
-
-            <textarea
-              value={message}
-              onChange={handleMessageChange}
-              placeholder="Sua mensagem vai aparecer aqui... Você pode gerar com IA e depois editar tudo do seu jeito, ou escrever do zero."
-              style={messageEditorStyle}
-            />
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-                marginTop: 18,
-              }}
-            >
-              <button onClick={copyMessage} style={buttonStyleSecondary}>
-                {copied ? "Copiado!" : "Copiar mensagem"}
-              </button>
-
-              <button onClick={clearMessage} style={buttonStyleSecondary}>
-                Limpar mensagem
-              </button>
+          <div style={doubleGridStyle}>
+            <div style={fieldWrapStyle}>
+              <label style={labelStyle}>Texto do botão final</label>
+              <input
+                name="buttonText"
+                value={form.buttonText}
+                onChange={handleChange}
+                placeholder="Responder agora 💖"
+                style={inputStyle}
+              />
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-                marginTop: 12,
-              }}
-            >
-              <button onClick={generateShareLink} style={buttonStyleSecondary}>
-                Gerar link da surpresa
-              </button>
-
-              <button onClick={shareWhatsApp} style={buttonStyleWhats}>
-                Compartilhar no WhatsApp
-              </button>
+            <div style={fieldWrapStyle}>
+              <label style={labelStyle}>Cor principal</label>
+              <select name="accent" value={form.accent} onChange={handleChange} style={inputStyle}>
+                <option value="rosa">Rosa premium</option>
+                <option value="roxo">Roxo neon</option>
+                <option value="vinho">Vinho elegante</option>
+              </select>
             </div>
+          </div>
 
-            {shareLink && (
-              <div
-                style={{
-                  marginTop: 16,
-                  padding: 16,
-                  background: "#fff",
-                  border: "1px solid #eed6de",
-                  borderRadius: 16,
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 14,
-                    color: "#7b5b66",
-                    marginBottom: 8,
-                  }}
-                >
-                  Link gerado
-                </div>
+          <div style={doubleGridStyle}>
+            <button onClick={generateRomanticMessage} style={{ ...secondaryButtonStyle, color: "#fff" }}>
+              Gerar mensagem romântica
+            </button>
 
-                <div
-                  style={{
-                    wordBreak: "break-all",
-                    fontSize: 14,
-                    color: "#4a2030",
-                  }}
-                >
-                  {shareLink}
+            <button onClick={copyMessage} style={secondaryButtonStyle}>
+              {copiedMessage ? "Mensagem copiada!" : "Copiar mensagem"}
+            </button>
+          </div>
+
+          <div style={doubleGridStyle}>
+            <button onClick={generateShareLink} style={secondaryButtonStyle}>
+              Gerar link da surpresa
+            </button>
+
+            <button onClick={copyLink} style={secondaryButtonStyle}>
+              {copiedLink ? "Link copiado!" : "Copiar link"}
+            </button>
+          </div>
+
+          <button onClick={openSurprise} style={{ ...primaryButtonStyle, background: accent.gradient }}>
+            Criar Minha Cartinha ❯
+          </button>
+
+          {shareLink && (
+            <div style={linkBoxStyle}>
+              <div style={linkLabelStyle}>Link gerado</div>
+              <div style={linkTextStyle}>{shareLink}</div>
+            </div>
+          )}
+        </div>
+
+        <div style={glassCardStyle}>
+          <h2 style={cardTitleStyle}>Prévia premium</h2>
+
+          <div style={previewMessageStyle}>
+            {form.message || "Sua mensagem vai aparecer aqui..."}
+          </div>
+
+          {photos.length > 0 && (
+            <div style={photoGridStyle}>
+              {photos.map((photo, index) => (
+                <img key={index} src={photo} alt={`Preview ${index + 1}`} style={photoStyle} />
+              ))}
+            </div>
+          )}
+
+          {mediaType !== "none" && (
+            <div style={mediaCardStyle}>
+              <div style={mediaTitleStyle}>Prévia da música 🎵</div>
+
+              {mediaType === "audio" && (
+                <audio controls style={{ width: "100%" }}>
+                  <source src={form.musicUrl} />
+                </audio>
+              )}
+
+              {mediaType === "spotify" && mediaEmbedUrl && (
+                <iframe
+                  src={mediaEmbedUrl}
+                  width="100%"
+                  height="152"
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  loading="lazy"
+                  style={iframeStyle}
+                />
+              )}
+
+              {mediaType === "youtube" && mediaEmbedUrl && (
+                <div style={videoWrapStyle}>
+                  <iframe
+                    src={mediaEmbedUrl}
+                    title="YouTube player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    style={videoIframeStyle}
+                  />
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+          )}
+
+          <div style={{ ...upsellBoxStyle, background: accent.soft, color: accent.text }}>
+            Na mensagem final vai aparecer:
+            <br />
+            <strong>“Responda essa mensagem e demonstre seu amor 💖”</strong>
           </div>
         </div>
       </section>
@@ -338,76 +530,471 @@ ${form.fromName ? `Com todo meu carinho, ${form.fromName}. ❤️` : "❤️"}`;
   );
 }
 
+function getMediaType(url) {
+  if (!url) return "none";
+
+  const lower = url.toLowerCase();
+
+  if (
+    lower.includes(".mp3") ||
+    lower.includes(".wav") ||
+    lower.includes(".ogg") ||
+    lower.includes(".m4a")
+  ) {
+    return "audio";
+  }
+
+  if (lower.includes("spotify.com")) {
+    return "spotify";
+  }
+
+  if (lower.includes("youtube.com") || lower.includes("youtu.be")) {
+    return "youtube";
+  }
+
+  return "none";
+}
+
+function getEmbedUrl(url) {
+  if (!url) return "";
+
+  try {
+    if (url.includes("spotify.com")) {
+      return url.replace("open.spotify.com/", "open.spotify.com/embed/");
+    }
+
+    if (url.includes("youtu.be/")) {
+      const id = url.split("youtu.be/")[1]?.split("?")[0];
+      return id ? `https://www.youtube.com/embed/${id}` : "";
+    }
+
+    if (url.includes("youtube.com/watch?v=")) {
+      const parsed = new URL(url);
+      const id = parsed.searchParams.get("v");
+      return id ? `https://www.youtube.com/embed/${id}` : "";
+    }
+
+    return "";
+  } catch {
+    return "";
+  }
+}
+
+const pageStyle = {
+  minHeight: "100vh",
+  background:
+    "radial-gradient(circle at top, rgba(255,98,160,0.16), transparent 20%), radial-gradient(circle at bottom, rgba(181,108,255,0.14), transparent 18%), linear-gradient(180deg, #120613 0%, #0d0714 100%)",
+  color: "#fff",
+  fontFamily:
+    'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  position: "relative",
+  overflow: "hidden",
+};
+
+const starsOverlayStyle = {
+  position: "absolute",
+  inset: 0,
+  backgroundImage: "radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1px)",
+  backgroundSize: "38px 38px",
+  opacity: 0.14,
+  pointerEvents: "none",
+};
+
+const topRibbonStyle = {
+  width: "100%",
+  color: "#fff",
+  textAlign: "center",
+  fontWeight: 800,
+  fontSize: 16,
+  padding: "14px 20px",
+  position: "relative",
+  zIndex: 2,
+};
+
+const heroStyle = {
+  maxWidth: 1400,
+  margin: "0 auto",
+  padding: "60px 28px 24px",
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 40,
+  alignItems: "center",
+  position: "relative",
+  zIndex: 2,
+};
+
+const terminalCardStyle = {
+  background: "#1a1a1f",
+  borderRadius: 30,
+  overflow: "hidden",
+  boxShadow: "0 30px 80px rgba(0,0,0,0.42)",
+  border: "1px solid rgba(255,255,255,0.06)",
+};
+
+const terminalHeaderStyle = {
+  background: "#3b3740",
+  padding: "16px 20px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+};
+
+const terminalDotsStyle = {
+  display: "flex",
+  gap: 10,
+};
+
+const dotStyle = {
+  width: 14,
+  height: 14,
+  borderRadius: "50%",
+  display: "inline-block",
+};
+
+const terminalFileStyle = {
+  color: "#ddd1da",
+  fontWeight: 700,
+  fontSize: 18,
+};
+
+const terminalBodyStyle = {
+  padding: 28,
+  fontFamily: '"Courier New", monospace',
+  fontSize: 20,
+  color: "#efe4ec",
+  lineHeight: 1.8,
+};
+
+const terminalLineStyle = {
+  margin: 0,
+};
+
+const heroTextWrapStyle = {
+  paddingRight: 10,
+};
+
+const heroTitleStyle = (accent) => ({
+  fontSize: "clamp(54px, 7vw, 100px)",
+  lineHeight: 0.95,
+  margin: 0,
+  fontWeight: 900,
+  background: accent.gradient,
+  WebkitBackgroundClip: "text",
+  color: "transparent",
+});
+
+const heroUnderlineStyle = {
+  height: 6,
+  width: "100%",
+  margin: "18px 0 28px",
+  borderRadius: 999,
+};
+
+const heroSubtitleStyle = {
+  fontSize: "clamp(20px, 2vw, 30px)",
+  color: "#d8ccd8",
+  lineHeight: 1.5,
+  margin: 0,
+};
+
+const builderWrapStyle = {
+  maxWidth: 1400,
+  margin: "0 auto",
+  padding: "16px 28px 60px",
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 28,
+  position: "relative",
+  zIndex: 2,
+};
+
+const glassCardStyle = {
+  background: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  borderRadius: 30,
+  padding: 28,
+  backdropFilter: "blur(12px)",
+  boxShadow: "0 18px 60px rgba(0,0,0,0.18)",
+};
+
+const cardTitleStyle = {
+  marginTop: 0,
+  marginBottom: 22,
+  fontSize: 34,
+  color: "#fff",
+  fontWeight: 800,
+};
+
+const fieldWrapStyle = {
+  marginBottom: 16,
+};
+
 const labelStyle = {
   display: "block",
   marginBottom: 8,
-  color: "#6b4b56",
+  color: "#f2d9e4",
   fontSize: 14,
+  fontWeight: 700,
 };
 
 const inputStyle = {
   width: "100%",
-  padding: "14px 16px",
-  borderRadius: 14,
-  border: "1px solid #e7c8d1",
-  outline: "none",
-  fontSize: 15,
-  boxSizing: "border-box",
-  background: "#fffdfa",
-};
-
-const titleStyle = {
-  marginTop: 0,
-  marginBottom: 20,
-  fontSize: 26,
-  color: "#4a2030",
-};
-
-const buttonStylePrimary = {
-  border: "none",
+  padding: "15px 16px",
   borderRadius: 16,
-  padding: "16px",
-  background: "linear-gradient(135deg, #d35d7b, #b94b6b)",
+  border: "1px solid rgba(255,255,255,0.10)",
+  background: "rgba(255,255,255,0.07)",
+  color: "#fff",
+  fontSize: 15,
+  outline: "none",
+  boxSizing: "border-box",
+};
+
+const textareaStyle = {
+  width: "100%",
+  minHeight: 180,
+  padding: "16px 18px",
+  borderRadius: 18,
+  border: "1px solid rgba(255,255,255,0.10)",
+  background: "rgba(255,255,255,0.07)",
   color: "#fff",
   fontSize: 16,
-  fontWeight: 600,
-  cursor: "pointer",
+  outline: "none",
+  resize: "vertical",
+  boxSizing: "border-box",
+  lineHeight: 1.7,
 };
 
-const buttonStyleSecondary = {
-  border: "1px solid #deb8c5",
-  borderRadius: 16,
-  padding: "14px 16px",
-  background: "#fff",
-  color: "#7c4055",
-  fontSize: 15,
-  fontWeight: 600,
-  cursor: "pointer",
+const fileInputStyle = {
+  width: "100%",
+  color: "#fff",
+  fontSize: 14,
 };
 
-const buttonStyleWhats = {
+const doubleGridStyle = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 12,
+  marginBottom: 12,
+};
+
+const tripleGridStyle = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr 1fr",
+  gap: 14,
+};
+
+const primaryButtonStyle = {
+  width: "100%",
   border: "none",
-  borderRadius: 14,
-  padding: "14px 18px",
-  background: "#25D366",
+  borderRadius: 999,
+  padding: "19px 22px",
+  color: "#fff",
+  fontSize: 18,
+  fontWeight: 900,
+  cursor: "pointer",
+  marginTop: 8,
+  boxShadow: "0 16px 34px rgba(255,110,168,0.26)",
+};
+
+const secondaryButtonStyle = {
+  border: "1px solid rgba(255,255,255,0.10)",
+  borderRadius: 16,
+  padding: "15px 16px",
+  background: "rgba(255,255,255,0.08)",
   color: "#fff",
   fontSize: 15,
   fontWeight: 700,
   cursor: "pointer",
 };
 
-const messageEditorStyle = {
-  width: "100%",
-  minHeight: 320,
-  padding: 20,
-  borderRadius: 20,
-  border: "1px solid #f2e2e7",
-  fontSize: 18,
+const previewMessageStyle = {
+  minHeight: 220,
+  borderRadius: 22,
+  padding: 22,
+  background: "rgba(255,255,255,0.08)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  color: "#fff",
   lineHeight: 1.8,
-  color: "#5a3a46",
-  background: "#fff",
-  resize: "vertical",
-  boxSizing: "border-box",
-  outline: "none",
   whiteSpace: "pre-wrap",
+  fontSize: 17,
+};
+
+const linkBoxStyle = {
+  marginTop: 16,
+  padding: 16,
+  borderRadius: 18,
+  background: "rgba(255,255,255,0.08)",
+  border: "1px solid rgba(255,255,255,0.10)",
+};
+
+const linkLabelStyle = {
+  fontSize: 13,
+  color: "#f6dce7",
+  marginBottom: 8,
+  fontWeight: 800,
+};
+
+const linkTextStyle = {
+  wordBreak: "break-all",
+  color: "#fff",
+  fontSize: 14,
+  lineHeight: 1.6,
+};
+
+const upsellBoxStyle = {
+  marginTop: 22,
+  padding: 18,
+  borderRadius: 18,
+  lineHeight: 1.7,
+  border: "1px solid rgba(255,255,255,0.08)",
+};
+
+const photoGridStyle = {
+  display: "grid",
+  gridTemplateColumns: "repeat(3, 1fr)",
+  gap: 12,
+  marginTop: 18,
+};
+
+const photoStyle = {
+  width: "100%",
+  height: 180,
+  objectFit: "cover",
+  borderRadius: 18,
+  border: "1px solid rgba(255,255,255,0.10)",
+};
+
+const mediaCardStyle = {
+  marginTop: 18,
+  padding: 18,
+  borderRadius: 22,
+  background: "rgba(255,255,255,0.07)",
+  border: "1px solid rgba(255,255,255,0.08)",
+};
+
+const mediaTitleStyle = {
+  color: "#ffe0ec",
+  fontWeight: 800,
+  marginBottom: 12,
+};
+
+const iframeStyle = {
+  border: "none",
+  borderRadius: 16,
+};
+
+const videoWrapStyle = {
+  position: "relative",
+  width: "100%",
+  paddingTop: "56.25%",
+  borderRadius: 18,
+  overflow: "hidden",
+};
+
+const videoIframeStyle = {
+  position: "absolute",
+  inset: 0,
+  width: "100%",
+  height: "100%",
+  border: "none",
+};
+
+const surpriseLayoutStyle = {
+  maxWidth: 1400,
+  margin: "0 auto",
+  padding: "60px 28px",
+  display: "grid",
+  gridTemplateColumns: "0.9fr 1.1fr",
+  gap: 36,
+  alignItems: "start",
+  position: "relative",
+  zIndex: 2,
+};
+
+const leftPanelStyle = {
+  background: "#1a1a1f",
+  borderRadius: 30,
+  overflow: "hidden",
+  boxShadow: "0 30px 80px rgba(0,0,0,0.42)",
+  border: "1px solid rgba(255,255,255,0.06)",
+};
+
+const rightPanelStyle = {
+  background: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  borderRadius: 30,
+  padding: 30,
+  backdropFilter: "blur(12px)",
+};
+
+const badgeStyle = (accent) => ({
+  display: "inline-block",
+  padding: "8px 16px",
+  borderRadius: 999,
+  background: accent.soft,
+  color: accent.text,
+  fontWeight: 800,
+  fontSize: 14,
+  marginBottom: 18,
+});
+
+const surpriseTitleStyle = (accent) => ({
+  fontSize: "clamp(42px, 5vw, 60px)",
+  lineHeight: 1.02,
+  marginTop: 0,
+  marginBottom: 20,
+  fontWeight: 900,
+  background: accent.gradient,
+  WebkitBackgroundClip: "text",
+  color: "transparent",
+});
+
+const messageBoxStyle = {
+  padding: 24,
+  borderRadius: 24,
+  background: "rgba(255,255,255,0.08)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  color: "#fff",
+  fontSize: 20,
+  lineHeight: 1.85,
+  whiteSpace: "pre-wrap",
+};
+
+const ctaBoxStyle = {
+  marginTop: 24,
+  padding: 22,
+  borderRadius: 22,
+  border: "1px solid rgba(255,255,255,0.08)",
+};
+
+const ctaTextStyle = {
+  fontSize: 22,
+  fontWeight: 900,
+  color: "#fff",
+  marginBottom: 16,
+  textAlign: "center",
+};
+
+const replyButtonStyle = {
+  width: "100%",
+  border: "none",
+  borderRadius: 999,
+  padding: "18px 22px",
+  color: "#fff",
+  fontSize: 18,
+  fontWeight: 900,
+  cursor: "pointer",
+};
+
+const backButtonStyle = {
+  marginTop: 16,
+  width: "100%",
+  border: "1px solid rgba(255,255,255,0.10)",
+  borderRadius: 18,
+  padding: "14px 18px",
+  background: "rgba(255,255,255,0.08)",
+  color: "#fff",
+  fontSize: 15,
+  fontWeight: 700,
+  cursor: "pointer",
 };
