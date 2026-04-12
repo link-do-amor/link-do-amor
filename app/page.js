@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 export default function Home() {
   const [form, setForm] = useState({
@@ -16,46 +16,11 @@ export default function Home() {
   });
 
   const [photos, setPhotos] = useState([]);
-  const [shareLink, setShareLink] = useState("");
+  const [createdLink, setCreatedLink] = useState("");
   const [copiedMessage, setCopiedMessage] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
-  const [isSurpriseMode, setIsSurpriseMode] = useState(false);
   const [loadingAi, setLoadingAi] = useState(false);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-
-    const from = params.get("from") || "";
-    const to = params.get("to") || "";
-    const msg = params.get("msg") || "";
-    const music = params.get("music") || "";
-    const imgs = params.get("imgs") || "";
-    const whatsapp = params.get("whatsapp") || "";
-    const buttonText = params.get("buttonText") || "Responder agora 💖";
-    const accent = params.get("accent") || "rosa";
-    const tone = params.get("tone") || "romântico elegante";
-    const memory = params.get("memory") || "";
-
-    if (from || to || msg || music || imgs || whatsapp || memory) {
-      setForm({
-        fromName: from,
-        toName: to,
-        message: msg,
-        musicUrl: music,
-        whatsapp,
-        buttonText,
-        accent,
-        tone,
-        memory,
-      });
-
-      if (imgs) {
-        setPhotos(imgs.split("|").filter(Boolean));
-      }
-
-      setIsSurpriseMode(true);
-    }
-  }, []);
+  const [saving, setSaving] = useState(false);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -130,62 +95,51 @@ ${from} 💖`;
     setTimeout(() => setCopiedMessage(false), 1800);
   }
 
-  function buildParams() {
-    return new URLSearchParams({
-      from: form.fromName,
-      to: form.toName,
-      msg: form.message,
-      music: form.musicUrl,
-      imgs: photos.join("|"),
-      whatsapp: form.whatsapp,
-      buttonText: form.buttonText,
-      accent: form.accent,
-      tone: form.tone,
-      memory: form.memory,
-    });
-  }
-
-  function generateShareLink() {
-    const link = `${window.location.origin}${window.location.pathname}?${buildParams().toString()}`;
-    setShareLink(link);
-  }
-
   async function copyLink() {
-    if (!shareLink) return;
-    await navigator.clipboard.writeText(shareLink);
+    if (!createdLink) return;
+    await navigator.clipboard.writeText(createdLink);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 1800);
   }
 
-  function openSurprise() {
-    const url = `${window.location.origin}${window.location.pathname}?${buildParams().toString()}`;
-    window.open(url, "_blank");
-  }
+  async function createCartinha(openInNewTab = false) {
+    try {
+      setSaving(true);
 
-  function openWhatsAppReply() {
-    const number = (form.whatsapp || "").replace(/\D/g, "");
-    const baseText = form.toName
-      ? `Oi ${form.toName}, eu vi sua cartinha 💖`
-      : "Eu vi sua cartinha 💖";
+      const response = await fetch("/api/cartinhas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...form,
+          photos,
+        }),
+      });
 
-    if (number) {
-      window.open(`https://wa.me/55${number}?text=${encodeURIComponent(baseText)}`, "_blank");
-      return;
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data?.details || data?.error || "Erro ao criar cartinha.");
+        return;
+      }
+
+      const link = `${window.location.origin}/c/${data.slug}`;
+      setCreatedLink(link);
+
+      if (openInNewTab) {
+        window.open(link, "_blank");
+      }
+    } catch (error) {
+      alert("Erro ao criar cartinha.");
+    } finally {
+      setSaving(false);
     }
-
-    window.open(`https://wa.me/?text=${encodeURIComponent(baseText)}`, "_blank");
-  }
-
-  function backToEditor() {
-    window.history.replaceState({}, "", window.location.pathname);
-    setIsSurpriseMode(false);
   }
 
   const accent = useMemo(() => {
     if (form.accent === "roxo") {
       return {
-        primary: "#d06cff",
-        secondary: "#8b5cf6",
         soft: "rgba(208,108,255,0.16)",
         gradient: "linear-gradient(90deg, #d06cff, #8b5cf6)",
         text: "#f3ddff",
@@ -194,8 +148,6 @@ ${from} 💖`;
 
     if (form.accent === "vinho") {
       return {
-        primary: "#c9476d",
-        secondary: "#7c1635",
         soft: "rgba(201,71,109,0.16)",
         gradient: "linear-gradient(90deg, #d85f87, #7c1635)",
         text: "#ffdce8",
@@ -203,8 +155,6 @@ ${from} 💖`;
     }
 
     return {
-      primary: "#ff6ea8",
-      secondary: "#b56cff",
       soft: "rgba(255,110,168,0.16)",
       gradient: "linear-gradient(90deg, #ff6ea8, #b56cff)",
       text: "#ffe0ed",
@@ -213,115 +163,6 @@ ${from} 💖`;
 
   const mediaType = useMemo(() => getMediaType(form.musicUrl), [form.musicUrl]);
   const mediaEmbedUrl = useMemo(() => getEmbedUrl(form.musicUrl), [form.musicUrl]);
-
-  if (isSurpriseMode) {
-    return (
-      <main style={pageStyle}>
-        <ResponsiveStyles />
-
-        <div style={{ ...topRibbonStyle, background: accent.gradient }}>
-          Responda essa mensagem e demonstre seu amor 💖
-        </div>
-
-        <div style={starsOverlayStyle} />
-
-        <section className="surprise-layout" style={surpriseLayoutStyle}>
-          <div style={leftPanelStyle}>
-            <div style={terminalHeaderStyle}>
-              <div style={terminalDotsStyle}>
-                <span style={{ ...dotStyle, background: "#ff6b8a" }} />
-                <span style={{ ...dotStyle, background: "#ff89a1" }} />
-                <span style={{ ...dotStyle, background: "#ffadc0" }} />
-              </div>
-              <div style={terminalFileStyle}>cartinha.txt</div>
-            </div>
-
-            <div style={terminalBodyStyle}>
-              <p style={terminalLineStyle}>┌─ Cartinha Especial Criada</p>
-              <p style={terminalLineStyle}>│</p>
-              <p style={terminalLineStyle}>│ Para: {form.toName || "Pessoa especial"}</p>
-              <p style={terminalLineStyle}>│ De: {form.fromName || "Alguém especial"}</p>
-              <p style={terminalLineStyle}>│ Status: entregue com amor</p>
-              <p style={terminalLineStyle}>└──────────────────────────────</p>
-            </div>
-
-            {photos.length > 0 && (
-              <div className="photo-grid" style={{ ...photoGridStyle, padding: 20 }}>
-                {photos.map((photo, index) => (
-                  <img key={index} src={photo} alt={`Foto ${index + 1}`} style={photoStyle} />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div style={rightPanelStyle}>
-            <div style={badgeStyle(accent)}>Mensagem Especial 💌</div>
-
-            <h1 style={surpriseTitleStyle(accent)}>
-              {form.toName ? `${form.toName}, essa cartinha é sua` : "Essa cartinha é sua"}
-            </h1>
-
-            <div style={messageBoxStyle}>
-              {form.message || "Uma mensagem especial foi preparada para você."}
-            </div>
-
-            {mediaType !== "none" && (
-              <div style={mediaCardStyle}>
-                <div style={mediaTitleStyle}>Nossa música 🎵</div>
-
-                {mediaType === "audio" && (
-                  <audio controls style={{ width: "100%" }}>
-                    <source src={form.musicUrl} />
-                    Seu navegador não suporta áudio.
-                  </audio>
-                )}
-
-                {mediaType === "spotify" && mediaEmbedUrl && (
-                  <iframe
-                    src={mediaEmbedUrl}
-                    width="100%"
-                    height="152"
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                    style={iframeStyle}
-                  />
-                )}
-
-                {mediaType === "youtube" && mediaEmbedUrl && (
-                  <div style={videoWrapStyle}>
-                    <iframe
-                      src={mediaEmbedUrl}
-                      title="YouTube player"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      style={videoIframeStyle}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div style={{ ...ctaBoxStyle, background: accent.soft }}>
-              <div style={ctaTextStyle}>
-                Responda essa mensagem e demonstre seu amor 💖
-              </div>
-
-              <button
-                onClick={openWhatsAppReply}
-                style={{ ...replyButtonStyle, background: accent.gradient }}
-              >
-                {form.buttonText || "Responder agora 💖"}
-              </button>
-            </div>
-
-            <button onClick={backToEditor} style={backButtonStyle}>
-              Voltar para edição
-            </button>
-          </div>
-        </section>
-      </main>
-    );
-  }
 
   return (
     <main style={pageStyle}>
@@ -351,13 +192,14 @@ ${from} 💖`;
             <p style={terminalLineStyle}>│ De: {form.fromName || "João"}</p>
             <p style={terminalLineStyle}>└──────────────────────────────</p>
             <br />
-            <p style={terminalLineStyle}>[1/7] 🤖 IA</p>
-            <p style={terminalLineStyle}>[2/7] 💌 Mensagem</p>
-            <p style={terminalLineStyle}>[3/7] 📸 Fotos</p>
-            <p style={terminalLineStyle}>[4/7] 🎵 Música</p>
-            <p style={terminalLineStyle}>[5/7] 🔗 Link</p>
-            <p style={terminalLineStyle}>[6/7] ✨ Surpresa</p>
-            <p style={terminalLineStyle}>[7/7] ❤️ Resposta</p>
+            <p style={terminalLineStyle}>[1/8] 🤖 IA</p>
+            <p style={terminalLineStyle}>[2/8] 💌 Mensagem</p>
+            <p style={terminalLineStyle}>[3/8] 📸 Fotos</p>
+            <p style={terminalLineStyle}>[4/8] 🎵 Música</p>
+            <p style={terminalLineStyle}>[5/8] 🔒 Banco</p>
+            <p style={terminalLineStyle}>[6/8] 🔗 Link curto</p>
+            <p style={terminalLineStyle}>[7/8] ✨ Surpresa</p>
+            <p style={terminalLineStyle}>[8/8] ❤️ Resposta</p>
           </div>
         </div>
 
@@ -373,9 +215,7 @@ ${from} 💖`;
           <div style={{ ...heroUnderlineStyle, background: accent.gradient }} />
 
           <p style={heroSubtitleStyle}>
-            Cartinhas digitais com IA, fotos, música e muito amor.
-            <br />
-            Envie e aumente a chance de resposta com uma CTA emocional no final.
+            Agora com link curto salvo em banco, pronto para compartilhar de um jeito muito mais profissional.
           </p>
         </div>
       </section>
@@ -456,6 +296,7 @@ ${from} 💖`;
                 <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
                   {photos.map((_, index) => (
                     <button
+                      type="button"
                       key={index}
                       onClick={() => removePhoto(index)}
                       style={removePhotoButtonStyle}
@@ -514,38 +355,40 @@ ${from} 💖`;
 
           <div className="double-grid" style={doubleGridStyle}>
             <button
+              type="button"
               onClick={generateAiMessage}
               style={{ ...secondaryButtonStyle, color: "#fff" }}
             >
               {loadingAi ? "Gerando com IA..." : "Gerar mensagem com IA"}
             </button>
 
-            <button onClick={copyMessage} style={secondaryButtonStyle}>
+            <button type="button" onClick={copyMessage} style={secondaryButtonStyle}>
               {copiedMessage ? "Mensagem copiada!" : "Copiar mensagem"}
             </button>
           </div>
 
           <div className="double-grid" style={doubleGridStyle}>
-            <button onClick={generateShareLink} style={secondaryButtonStyle}>
-              Gerar link da surpresa
+            <button type="button" onClick={() => createCartinha(false)} style={secondaryButtonStyle}>
+              {saving ? "Salvando..." : "Gerar link curto"}
             </button>
 
-            <button onClick={copyLink} style={secondaryButtonStyle}>
+            <button type="button" onClick={copyLink} style={secondaryButtonStyle}>
               {copiedLink ? "Link copiado!" : "Copiar link"}
             </button>
           </div>
 
           <button
-            onClick={openSurprise}
+            type="button"
+            onClick={() => createCartinha(true)}
             style={{ ...primaryButtonStyle, background: accent.gradient }}
           >
-            Criar Minha Cartinha ❯
+            {saving ? "Criando..." : "Criar Minha Cartinha ❯"}
           </button>
 
-          {shareLink && (
+          {createdLink && (
             <div style={linkBoxStyle}>
               <div style={linkLabelStyle}>Link gerado</div>
-              <div style={linkTextStyle}>{shareLink}</div>
+              <div style={linkTextStyle}>{createdLink}</div>
             </div>
           )}
         </div>
@@ -682,8 +525,7 @@ function ResponsiveStyles() {
 
       @media (max-width: 1100px) {
         .hero-grid,
-        .builder-grid,
-        .surprise-layout {
+        .builder-grid {
           grid-template-columns: 1fr !important;
         }
       }
@@ -1028,104 +870,4 @@ const videoIframeStyle = {
   width: "100%",
   height: "100%",
   border: "none",
-};
-
-const surpriseLayoutStyle = {
-  maxWidth: 1400,
-  margin: "0 auto",
-  padding: "60px 28px",
-  display: "grid",
-  gridTemplateColumns: "0.9fr 1.1fr",
-  gap: 36,
-  alignItems: "start",
-  position: "relative",
-  zIndex: 2,
-};
-
-const leftPanelStyle = {
-  background: "#1a1a1f",
-  borderRadius: 30,
-  overflow: "hidden",
-  boxShadow: "0 30px 80px rgba(0,0,0,0.42)",
-  border: "1px solid rgba(255,255,255,0.06)",
-};
-
-const rightPanelStyle = {
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: 30,
-  padding: 30,
-  backdropFilter: "blur(12px)",
-};
-
-const badgeStyle = (accent) => ({
-  display: "inline-block",
-  padding: "8px 16px",
-  borderRadius: 999,
-  background: accent.soft,
-  color: accent.text,
-  fontWeight: 800,
-  fontSize: 14,
-  marginBottom: 18,
-});
-
-const surpriseTitleStyle = (accent) => ({
-  fontSize: "clamp(42px, 5vw, 60px)",
-  lineHeight: 1.02,
-  marginTop: 0,
-  marginBottom: 20,
-  fontWeight: 900,
-  background: accent.gradient,
-  WebkitBackgroundClip: "text",
-  color: "transparent",
-});
-
-const messageBoxStyle = {
-  padding: 24,
-  borderRadius: 24,
-  background: "rgba(255,255,255,0.08)",
-  border: "1px solid rgba(255,255,255,0.1)",
-  color: "#fff",
-  fontSize: 20,
-  lineHeight: 1.85,
-  whiteSpace: "pre-wrap",
-};
-
-const ctaBoxStyle = {
-  marginTop: 24,
-  padding: 22,
-  borderRadius: 22,
-  border: "1px solid rgba(255,255,255,0.08)",
-};
-
-const ctaTextStyle = {
-  fontSize: 22,
-  fontWeight: 900,
-  color: "#fff",
-  marginBottom: 16,
-  textAlign: "center",
-};
-
-const replyButtonStyle = {
-  width: "100%",
-  border: "none",
-  borderRadius: 999,
-  padding: "18px 22px",
-  color: "#fff",
-  fontSize: 18,
-  fontWeight: 900,
-  cursor: "pointer",
-};
-
-const backButtonStyle = {
-  marginTop: 16,
-  width: "100%",
-  border: "1px solid rgba(255,255,255,0.10)",
-  borderRadius: 18,
-  padding: "14px 18px",
-  background: "rgba(255,255,255,0.08)",
-  color: "#fff",
-  fontSize: 15,
-  fontWeight: 700,
-  cursor: "pointer",
 };
