@@ -72,6 +72,10 @@ ${form.fromName ? `Com todo meu carinho, ${form.fromName}. ❤️` : "❤️"}`;
     }, 1000);
   }
 
+  function handleMessageChange(e) {
+    setMessage(e.target.value);
+  }
+
   async function copyMessage() {
     if (!message) return;
     await navigator.clipboard.writeText(message);
@@ -100,6 +104,11 @@ ${form.fromName ? `Com todo meu carinho, ${form.fromName}. ❤️` : "❤️"}`;
     );
 
     window.open(`https://wa.me/?text=${finalText}`, "_blank");
+  }
+
+  function clearMessage() {
+    setMessage("");
+    setCopied(false);
   }
 
   return (
@@ -158,8 +167,8 @@ ${form.fromName ? `Com todo meu carinho, ${form.fromName}. ❤️` : "❤️"}`;
               lineHeight: 1.6,
             }}
           >
-            Gere uma mensagem especial, copie, compartilhe no WhatsApp e crie
-            um link único para surpreender quem você ama.
+            Gere uma mensagem especial, edite do seu jeito, escreva a sua própria
+            versão e compartilhe um link único para surpreender quem você ama.
           </p>
         </div>
 
@@ -248,15 +257,14 @@ ${form.fromName ? `Com todo meu carinho, ${form.fromName}. ❤️` : "❤️"}`;
               border: "1px solid #f1d7de",
             }}
           >
-            <h2 style={titleStyle}>Prévia da mensagem</h2>
+            <h2 style={titleStyle}>Escreva ou edite sua mensagem</h2>
 
-            <div style={previewBox}>
-              {message || (
-                <span style={{ color: "#a1848e" }}>
-                  Sua mensagem gerada vai aparecer aqui...
-                </span>
-              )}
-            </div>
+            <textarea
+              value={message}
+              onChange={handleMessageChange}
+              placeholder="Sua mensagem vai aparecer aqui... Você pode gerar com IA e depois editar tudo do seu jeito, ou escrever do zero."
+              style={messageEditorStyle}
+            />
 
             <div
               style={{
@@ -270,8 +278,25 @@ ${form.fromName ? `Com todo meu carinho, ${form.fromName}. ❤️` : "❤️"}`;
                 {copied ? "Copiado!" : "Copiar mensagem"}
               </button>
 
+              <button onClick={clearMessage} style={buttonStyleSecondary}>
+                Limpar mensagem
+              </button>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 12,
+                marginTop: 12,
+              }}
+            >
               <button onClick={generateShareLink} style={buttonStyleSecondary}>
                 Gerar link da surpresa
+              </button>
+
+              <button onClick={shareWhatsApp} style={buttonStyleWhats}>
+                Compartilhar no WhatsApp
               </button>
             </div>
 
@@ -300,15 +325,10 @@ ${form.fromName ? `Com todo meu carinho, ${form.fromName}. ❤️` : "❤️"}`;
                     wordBreak: "break-all",
                     fontSize: 14,
                     color: "#4a2030",
-                    marginBottom: 12,
                   }}
                 >
                   {shareLink}
                 </div>
-
-                <button onClick={shareWhatsApp} style={buttonStyleWhats}>
-                  Compartilhar no WhatsApp
-                </button>
               </div>
             )}
           </div>
@@ -343,18 +363,6 @@ const titleStyle = {
   color: "#4a2030",
 };
 
-const previewBox = {
-  borderRadius: 20,
-  padding: 24,
-  background: "#fff",
-  minHeight: 280,
-  border: "1px solid #f2e2e7",
-  fontSize: 20,
-  lineHeight: 1.8,
-  color: "#5a3a46",
-  whiteSpace: "pre-line",
-};
-
 const buttonStylePrimary = {
   border: "none",
   borderRadius: 16,
@@ -386,4 +394,20 @@ const buttonStyleWhats = {
   fontSize: 15,
   fontWeight: 700,
   cursor: "pointer",
+};
+
+const messageEditorStyle = {
+  width: "100%",
+  minHeight: 320,
+  padding: 20,
+  borderRadius: 20,
+  border: "1px solid #f2e2e7",
+  fontSize: 18,
+  lineHeight: 1.8,
+  color: "#5a3a46",
+  background: "#fff",
+  resize: "vertical",
+  boxSizing: "border-box",
+  outline: "none",
+  whiteSpace: "pre-wrap",
 };
