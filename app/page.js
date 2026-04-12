@@ -23,13 +23,15 @@ export default function Home() {
     setMessage("");
 
     setTimeout(() => {
-      const generated = `Desde que ${form.toName || "você"} chegou, tudo ficou mais bonito. ${
-        form.memory
-          ? `Eu ainda sorrio quando lembro de ${form.memory}. `
-          : ""
-      }Com carinho, eu só queria te lembrar o quanto você é especial pra mim.${
-        form.fromName ? ` Com amor, ${form.fromName}.` : ""
-      } ❤️`;
+      const generated = `Desde que ${form.toName || "você"} chegou, minha vida ganhou um brilho diferente. ✨
+
+${form.memory ? `Eu guardo com carinho cada detalhe de ${form.memory}, como se fosse um capítulo especial da nossa história. ` : ""}
+
+Tem algo em você que me traz paz, que me faz sorrir sem motivo e acreditar que o amor pode ser leve e intenso ao mesmo tempo.
+
+Você é especial pra mim de um jeito que palavras nunca vão conseguir explicar completamente… mas ainda assim eu tento, todos os dias.
+
+${form.fromName ? `Com todo meu carinho, ${form.fromName}. ❤️` : "❤️"}`;
 
       setMessage(generated);
       setLoading(false);
@@ -80,7 +82,7 @@ export default function Home() {
           >
             Crie uma surpresa
             <br />
-            romântica inesquecível
+            romântica inesquecível 💖
           </h1>
 
           <p
@@ -125,16 +127,7 @@ export default function Home() {
 
             <div style={{ display: "grid", gap: 16 }}>
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: 8,
-                    color: "#6b4b56",
-                    fontSize: 14,
-                  }}
-                >
-                  Seu nome
-                </label>
+                <label style={labelStyle}>Seu nome</label>
                 <input
                   name="fromName"
                   value={form.fromName}
@@ -145,16 +138,7 @@ export default function Home() {
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: 8,
-                    color: "#6b4b56",
-                    fontSize: 14,
-                  }}
-                >
-                  Nome da pessoa
-                </label>
+                <label style={labelStyle}>Nome da pessoa</label>
                 <input
                   name="toName"
                   value={form.toName}
@@ -165,36 +149,18 @@ export default function Home() {
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: 8,
-                    color: "#6b4b56",
-                    fontSize: 14,
-                  }}
-                >
-                  Lembrança especial
-                </label>
+                <label style={labelStyle}>Lembrança especial</label>
                 <textarea
                   name="memory"
                   value={form.memory}
                   onChange={handleChange}
-                  placeholder="Ex: nossa primeira viagem, nosso primeiro encontro..."
-                  style={{ ...inputStyle, minHeight: 120, resize: "vertical" }}
+                  placeholder="Ex: nossa primeira viagem..."
+                  style={{ ...inputStyle, minHeight: 120 }}
                 />
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: 8,
-                    color: "#6b4b56",
-                    fontSize: 14,
-                  }}
-                >
-                  Tom da mensagem
-                </label>
+                <label style={labelStyle}>Tom da mensagem</label>
                 <select
                   name="tone"
                   value={form.tone}
@@ -209,17 +175,9 @@ export default function Home() {
 
               <button
                 onClick={generateMessage}
-                style={{
-                  border: "none",
-                  borderRadius: 16,
-                  padding: "16px 22px",
-                  background: "#c14f71",
-                  color: "#fff",
-                  fontSize: 16,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  marginTop: 8,
-                }}
+                style={buttonStyle}
+                onMouseOver={(e) => (e.target.style.opacity = 0.9)}
+                onMouseOut={(e) => (e.target.style.opacity = 1)}
               >
                 {loading ? "Gerando..." : "Gerar mensagem com IA"}
               </button>
@@ -235,49 +193,14 @@ export default function Home() {
               border: "1px solid #f1d7de",
             }}
           >
-            <h2
-              style={{
-                marginTop: 0,
-                marginBottom: 20,
-                fontSize: 26,
-                color: "#4a2030",
-              }}
-            >
-              Prévia da mensagem
-            </h2>
+            <h2 style={titleStyle}>Prévia da mensagem</h2>
 
-            <div
-              style={{
-                borderRadius: 20,
-                padding: 24,
-                background: "#fff",
-                minHeight: 280,
-                border: "1px solid #f2e2e7",
-                color: "#5a3a46",
-                fontSize: 20,
-                lineHeight: 1.8,
-              }}
-            >
+            <div style={previewBox}>
               {message || (
                 <span style={{ color: "#a1848e" }}>
                   Sua mensagem gerada vai aparecer aqui...
                 </span>
               )}
-            </div>
-
-            <div
-              style={{
-                marginTop: 18,
-                padding: 16,
-                borderRadius: 16,
-                background: "#f8e8ed",
-                color: "#7a5763",
-                fontSize: 14,
-                lineHeight: 1.6,
-              }}
-            >
-              Próximo passo: depois disso vamos adicionar fotos, botão final,
-              mensagem revelada e pagamento com Mercado Pago.
             </div>
           </div>
         </div>
@@ -286,13 +209,46 @@ export default function Home() {
   );
 }
 
+const labelStyle = {
+  display: "block",
+  marginBottom: 8,
+  color: "#6b4b56",
+  fontSize: 14,
+};
+
 const inputStyle = {
   width: "100%",
   padding: "14px 16px",
   borderRadius: 14,
   border: "1px solid #e7c8d1",
-  outline: "none",
   fontSize: 15,
-  boxSizing: "border-box",
-  background: "#fffdfa",
+};
+
+const buttonStyle = {
+  border: "none",
+  borderRadius: 16,
+  padding: "16px",
+  background: "linear-gradient(135deg, #d35d7b, #b94b6b)",
+  color: "#fff",
+  fontSize: 16,
+  fontWeight: 600,
+  cursor: "pointer",
+};
+
+const titleStyle = {
+  marginTop: 0,
+  marginBottom: 20,
+  fontSize: 26,
+  color: "#4a2030",
+};
+
+const previewBox = {
+  borderRadius: 20,
+  padding: 24,
+  background: "#fff",
+  minHeight: 280,
+  border: "1px solid #f2e2e7",
+  fontSize: 20,
+  lineHeight: 1.8,
+  color: "#5a3a46",
 };
