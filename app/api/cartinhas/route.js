@@ -6,27 +6,41 @@ const supabase = createClient(
 )
 
 export async function POST(req) {
-  const body = await req.json()
+  try {
+    const body = await req.json()
 
-  const slug = Math.random().toString(36).substring(2, 8)
+    const slug = Math.random().toString(36).substring(2, 8)
 
-  const { error } = await supabase
-    .from('cartinhas')
-    .insert([
+    const { error } = await supabase
+      .from('cartinhas')
+      .insert([
+        {
+          slug,
+          payload: body
+        }
+      ])
+
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    }
+
+    return new Response(
+      JSON.stringify({ slug }),
       {
-        slug,
-        conteudo: body
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
       }
-    ])
-
-  if (error) {
-    return new Response(JSON.stringify({ error }), { status: 500 })
+    )
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: 'Erro interno ao criar cartinha.' }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    )
   }
-
-  return new Response(
-    JSON.stringify({
-      slug
-    }),
-    { status: 200 }
-  )
 }
