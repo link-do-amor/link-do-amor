@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { gerarMensagem } from '@/lib/gerarMensagem'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -23,22 +24,31 @@ export async function POST(req) {
   try {
     const body = await req.json()
 
-    const slug = gerarSlug(body?.toName || body?.para || 'cartinha')
+    const slug = gerarSlug(body?.toName || 'cartinha')
+
+    // 💣 GERA MENSAGEM AUTOMÁTICA TOP
+    const mensagemGerada = gerarMensagem({
+      tone: body?.tone || 'romantico',
+      toName: body?.toName,
+      fromName: body?.fromName,
+      memory: body?.memory
+    })
 
     const payload = {
       fromName: body?.fromName || '',
       toName: body?.toName || '',
-      message: body?.message || '',
+      message: mensagemGerada,
       musicUrl: body?.musicUrl || '',
       whatsapp: body?.whatsapp || '',
       buttonText: body?.buttonText || 'Responder agora 💖',
       accent: body?.accent || 'rosa',
-      tone: body?.tone || 'romântico elegante',
+      tone: body?.tone || 'romantico',
       memory: body?.memory || '',
       photos: Array.isArray(body?.photos) ? body.photos : []
     }
 
-    const { error } = await supabase
+    // 💾 SALVA NO BANCO
+    const { error: insertError } = await supabase
       .from('cartinhas')
       .insert([
         {
@@ -47,9 +57,9 @@ export async function POST(req) {
         }
       ])
 
-    if (error) {
+    if (insertError) {
       return new Response(
-        JSON.stringify({ error: error.message }),
+        JSON.stringify({ error: insertError.message }),
         {
           status: 500,
           headers: { 'Content-Type': 'application/json' }
@@ -58,15 +68,19 @@ export async function POST(req) {
     }
 
     return new Response(
-      JSON.stringify({ slug }),
+      JSON.stringify({
+        slug,
+        url: `/c/${slug}`
+      }),
       {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       }
     )
-  } catch (err) {
+
+  } catch (error) {
     return new Response(
-      JSON.stringify({ error: 'Erro interno ao criar cartinha.' }),
+      JSON.stringify({ error: 'Erro ao criar cartinha.' }),
       {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
