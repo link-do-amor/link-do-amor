@@ -76,7 +76,7 @@ function getAccent(accent) {
 export default async function CartinhaPage({ params }) {
   const { data, error } = await supabase
     .from('cartinhas')
-    .select('payload')
+    .select('payload, status')
     .eq('slug', params.slug)
     .single()
 
@@ -87,6 +87,23 @@ export default async function CartinhaPage({ params }) {
         <div style={centerBoxStyle}>
           <h1 style={{ marginTop: 0 }}>Ops...</h1>
           <p>Essa cartinha não existe ou foi removida.</p>
+        </div>
+      </main>
+    )
+  }
+
+  if (data.status !== 'aprovado') {
+    return (
+      <main style={pageStyle}>
+        <div style={topRibbonStyle}>Essa cartinha é especial 💖</div>
+        <div style={lockedBoxStyle}>
+          <h1 style={lockedTitleStyle}>Cartinha bloqueada</h1>
+          <p style={lockedTextStyle}>
+            Essa surpresa só pode ser aberta após a confirmação do pagamento.
+          </p>
+          <a href="/" style={lockedButtonStyle}>
+            Criar minha cartinha
+          </a>
         </div>
       </main>
     )
@@ -291,6 +308,40 @@ const centerBoxStyle = {
   border: '1px solid rgba(255,255,255,0.1)',
   position: 'relative',
   zIndex: 2
+}
+
+const lockedBoxStyle = {
+  maxWidth: 760,
+  margin: '120px auto',
+  padding: 36,
+  borderRadius: 28,
+  background: 'rgba(255,255,255,0.08)',
+  border: '1px solid rgba(255,255,255,0.12)',
+  textAlign: 'center',
+  position: 'relative',
+  zIndex: 2
+}
+
+const lockedTitleStyle = {
+  marginTop: 0,
+  fontSize: 42
+}
+
+const lockedTextStyle = {
+  fontSize: 20,
+  lineHeight: 1.7,
+  color: '#f5dfe6'
+}
+
+const lockedButtonStyle = {
+  display: 'inline-block',
+  marginTop: 20,
+  textDecoration: 'none',
+  background: 'linear-gradient(90deg, #ff6ea8, #b56cff)',
+  color: '#fff',
+  borderRadius: 999,
+  padding: '16px 22px',
+  fontWeight: 800
 }
 
 const surpriseLayoutStyle = {
