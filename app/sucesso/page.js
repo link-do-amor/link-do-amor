@@ -1,11 +1,25 @@
-export default function Sucesso({ searchParams }) {
+import { createClient } from '@supabase/supabase-js'
+
+export default async function Sucesso({ searchParams }) {
   const slug = searchParams?.slug || ''
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  )
+
+  if (slug) {
+    await supabase
+      .from('cartinhas')
+      .update({ status: 'aprovado' })
+      .eq('slug', slug)
+  }
 
   return (
     <main style={pageStyle}>
       <div style={boxStyle}>
         <h1 style={titleStyle}>Pagamento aprovado 💖</h1>
-        <p style={textStyle}>Sua cartinha foi criada com sucesso.</p>
+        <p style={textStyle}>Sua cartinha foi liberada com sucesso.</p>
 
         <div style={buttonsStyle}>
           <a href={slug ? `/c/${slug}` : '/'} style={primaryButtonStyle}>
