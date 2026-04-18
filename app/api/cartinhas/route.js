@@ -26,7 +26,8 @@ export async function POST(req) {
 
     const slug = gerarSlug(body?.toName || 'cartinha')
 
-    // 💣 GERA MENSAGEM AUTOMÁTICA TOP
+    const mensagemManual = String(body?.message || '').trim()
+
     const mensagemGerada = gerarMensagem({
       tone: body?.tone || 'romantico',
       toName: body?.toName,
@@ -34,10 +35,12 @@ export async function POST(req) {
       memory: body?.memory
     })
 
+    const mensagemFinal = mensagemManual || mensagemGerada
+
     const payload = {
       fromName: body?.fromName || '',
       toName: body?.toName || '',
-      message: mensagemGerada,
+      message: mensagemFinal,
       musicUrl: body?.musicUrl || '',
       whatsapp: body?.whatsapp || '',
       buttonText: body?.buttonText || 'Responder agora 💖',
@@ -47,7 +50,6 @@ export async function POST(req) {
       photos: Array.isArray(body?.photos) ? body.photos : []
     }
 
-    // 💾 SALVA NO BANCO
     const { error: insertError } = await supabase
       .from('cartinhas')
       .insert([
@@ -77,7 +79,6 @@ export async function POST(req) {
         headers: { 'Content-Type': 'application/json' }
       }
     )
-
   } catch (error) {
     return new Response(
       JSON.stringify({ error: 'Erro ao criar cartinha.' }),
