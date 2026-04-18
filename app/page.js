@@ -97,7 +97,7 @@ ${from} 💖`
     try {
       setPaying(true)
 
-      const response = await fetch('/api/pagamento', {
+      const response = await fetch('/api/criar-preferencia', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
