@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { gerarMensagem } from '../../../lib/gerarMensagem'
+import { gerarMensagem } from '../../lib/gerarMensagem'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -26,7 +26,6 @@ export async function POST(req) {
 
     const slug = gerarSlug(body?.toName || 'cartinha')
 
-    // 👇 Se o usuário escreveu, usa. Senão usa IA
     const mensagemManual = String(body?.message || '').trim()
 
     const mensagemIA = gerarMensagem({
@@ -51,7 +50,6 @@ export async function POST(req) {
       photos: Array.isArray(body?.photos) ? body.photos : []
     }
 
-    // 💾 Salva no banco
     const { error } = await supabase
       .from('cartinhas')
       .insert([{ slug, payload }])
@@ -66,7 +64,6 @@ export async function POST(req) {
       )
     }
 
-    // 🔗 Retorna link
     return new Response(
       JSON.stringify({
         slug,
@@ -77,7 +74,6 @@ export async function POST(req) {
         headers: { 'Content-Type': 'application/json' }
       }
     )
-
   } catch (err) {
     return new Response(
       JSON.stringify({
