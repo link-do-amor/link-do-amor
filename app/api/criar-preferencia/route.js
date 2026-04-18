@@ -26,40 +26,28 @@ export async function POST(req) {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       return new Response(
         JSON.stringify({ error: 'NEXT_PUBLIC_SUPABASE_URL não configurada.' }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       )
     }
 
     if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       return new Response(
         JSON.stringify({ error: 'NEXT_PUBLIC_SUPABASE_ANON_KEY não configurada.' }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       )
     }
 
     if (!process.env.MP_ACCESS_TOKEN) {
       return new Response(
         JSON.stringify({ error: 'MP_ACCESS_TOKEN não configurado.' }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       )
     }
 
     if (!process.env.NEXT_PUBLIC_SITE_URL) {
       return new Response(
         JSON.stringify({ error: 'NEXT_PUBLIC_SITE_URL não configurada.' }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       )
     }
 
@@ -75,7 +63,7 @@ export async function POST(req) {
       whatsapp: body?.whatsapp || '',
       buttonText: body?.buttonText || 'Responder agora 💖',
       accent: body?.accent || 'rosa',
-      tone: body?.tone || 'romântico elegante',
+      tone: body?.tone || 'romantico',
       memory: body?.memory || '',
       photos: Array.isArray(body?.photos) ? body.photos : []
     }
@@ -85,17 +73,15 @@ export async function POST(req) {
       .insert([
         {
           slug,
-          payload
+          payload,
+          status: 'pendente'
         }
       ])
 
     if (insertError) {
       return new Response(
         JSON.stringify({ error: `Erro ao salvar cartinha: ${insertError.message}` }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       )
     }
 
@@ -142,10 +128,7 @@ export async function POST(req) {
             data?.cause?.[0]?.description ||
             'Erro ao criar pagamento no Mercado Pago.'
         }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       )
     }
 
@@ -156,10 +139,7 @@ export async function POST(req) {
 
       return new Response(
         JSON.stringify({ error: 'Mercado Pago não retornou a URL de pagamento.' }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       )
     }
 
@@ -168,10 +148,7 @@ export async function POST(req) {
         url: checkoutUrl,
         slug
       }),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      }
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
     )
   } catch (error) {
     if (slug) {
@@ -182,10 +159,7 @@ export async function POST(req) {
       JSON.stringify({
         error: error?.message || 'Erro interno ao criar pagamento.'
       }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     )
   }
 }
