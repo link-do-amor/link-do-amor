@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { gerarMensagem } from '@/lib/gerarMensagem'
+import { gerarMensagem } from '../../../lib/gerarMensagem'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -28,14 +28,14 @@ export async function POST(req) {
 
     const mensagemManual = String(body?.message || '').trim()
 
-    const mensagemGerada = gerarMensagem({
-      tone: body?.tone || 'romantico',
+    const mensagemIA = gerarMensagem({
+      tone: body?.tone,
       toName: body?.toName,
       fromName: body?.fromName,
       memory: body?.memory
     })
 
-    const mensagemFinal = mensagemManual || mensagemGerada
+    const mensagemFinal = mensagemManual || mensagemIA
 
     const payload = {
       fromName: body?.fromName || '',
@@ -50,23 +50,14 @@ export async function POST(req) {
       photos: Array.isArray(body?.photos) ? body.photos : []
     }
 
-    const { error: insertError } = await supabase
+    const { error } = await supabase
       .from('cartinhas')
-      .insert([
-        {
-          slug,
-          payload
-        }
-      ])
+      .insert([{ slug, payload }])
 
-    if (insertError) {
-      return new Response(
-        JSON.stringify({ error: insertError.message }),
-        {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      )
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500
+      })
     }
 
     return new Response(
@@ -74,18 +65,13 @@ export async function POST(req) {
         slug,
         url: `/c/${slug}`
       }),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      }
+      { status: 200 }
     )
-  } catch (error) {
+
+  } catch (err) {
     return new Response(
-      JSON.stringify({ error: 'Erro ao criar cartinha.' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
+      JSON.stringify({ error: 'Erro interno' }),
+      { status: 500 }
     )
   }
 }
