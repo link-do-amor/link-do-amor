@@ -16,11 +16,9 @@ export default function Home() {
   })
 
   const [photos, setPhotos] = useState([])
-  const [createdLink, setCreatedLink] = useState('')
   const [copiedMessage, setCopiedMessage] = useState(false)
-  const [copiedLink, setCopiedLink] = useState(false)
   const [loadingAi, setLoadingAi] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [paying, setPaying] = useState(false)
 
   function handleChange(e) {
     const { name, value } = e.target
@@ -85,7 +83,7 @@ ${from} 💖`
         message: buildAiMessage()
       }))
       setLoadingAi(false)
-    }, 1000)
+    }, 900)
   }
 
   async function copyMessage() {
@@ -95,18 +93,11 @@ ${from} 💖`
     setTimeout(() => setCopiedMessage(false), 1800)
   }
 
-  async function copyLink() {
-    if (!createdLink) return
-    await navigator.clipboard.writeText(createdLink)
-    setCopiedLink(true)
-    setTimeout(() => setCopiedLink(false), 1800)
-  }
-
-  async function createCartinha(openInNewTab = false) {
+  async function handlePagamento() {
     try {
-      setSaving(true)
+      setPaying(true)
 
-      const response = await fetch('/api/cartinhas', {
+      const response = await fetch('/api/pagamento', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -127,21 +118,16 @@ ${from} 💖`
 
       const data = await response.json()
 
-      if (!response.ok || !data.slug) {
-        alert(data?.error || 'Erro ao criar cartinha.')
+      if (!response.ok || !data.url) {
+        alert(data?.error || 'Erro ao abrir pagamento.')
         return
       }
 
-      const link = `${window.location.origin}/c/${data.slug}`
-      setCreatedLink(link)
-
-      if (openInNewTab) {
-        window.open(link, '_blank')
-      }
+      window.location.href = data.url
     } catch (error) {
-      alert('Erro ao criar cartinha.')
+      alert('Erro ao abrir pagamento.')
     } finally {
-      setSaving(false)
+      setPaying(false)
     }
   }
 
@@ -383,30 +369,13 @@ ${from} 💖`
             </button>
           </div>
 
-          <div className="double-grid" style={doubleGridStyle}>
-            <button type="button" onClick={() => createCartinha(false)} style={secondaryButtonStyle}>
-              {saving ? 'Gerando link...' : 'Gerar link curto'}
-            </button>
-
-            <button type="button" onClick={copyLink} style={secondaryButtonStyle}>
-              {copiedLink ? 'Link copiado!' : 'Copiar link'}
-            </button>
-          </div>
-
           <button
             type="button"
-            onClick={() => createCartinha(true)}
+            onClick={handlePagamento}
             style={{ ...primaryButtonStyle, background: accent.gradient }}
           >
-            {saving ? 'Criando...' : 'Criar Minha Cartinha ❯'}
+            {paying ? 'Abrindo pagamento...' : 'Finalizar e enviar — R$ 9,90'}
           </button>
-
-          {createdLink && (
-            <div style={linkBoxStyle}>
-              <div style={linkLabelStyle}>Link gerado</div>
-              <div style={linkTextStyle}>{createdLink}</div>
-            </div>
-          )}
         </div>
 
         <div style={glassCardStyle}>
@@ -815,28 +784,6 @@ const previewMessageStyle = {
   lineHeight: 1.8,
   whiteSpace: 'pre-wrap',
   fontSize: 17
-}
-
-const linkBoxStyle = {
-  marginTop: 16,
-  padding: 16,
-  borderRadius: 18,
-  background: 'rgba(255,255,255,0.08)',
-  border: '1px solid rgba(255,255,255,0.10)'
-}
-
-const linkLabelStyle = {
-  fontSize: 13,
-  color: '#f6dce7',
-  marginBottom: 8,
-  fontWeight: 800
-}
-
-const linkTextStyle = {
-  wordBreak: 'break-all',
-  color: '#fff',
-  fontSize: 14,
-  lineHeight: 1.6
 }
 
 const upsellBoxStyle = {
