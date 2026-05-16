@@ -109,6 +109,7 @@ export async function POST(req) {
         metadata: {
           slug
         },
+        notification_url: `${siteUrl}/api/mercadopago/webhook`,
         back_urls: {
           success: `${siteUrl}/sucesso?slug=${slug}`,
           failure: `${siteUrl}/erro?slug=${slug}`,
