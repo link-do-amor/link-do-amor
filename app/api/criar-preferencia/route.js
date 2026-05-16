@@ -3,11 +3,6 @@ import { createClient } from '@supabase/supabase-js'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-)
-
 function gerarSlug(base = 'cartinha') {
   const normalizado = String(base)
     .toLowerCase()
@@ -26,8 +21,24 @@ export async function POST(req) {
   let slug = ''
 
   try {
+    const supabaseUrl = String(process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim()
+    const supabaseKey = String(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim()
     const token = String(process.env.MP_ACCESS_TOKEN || '').trim()
     const siteUrl = String(process.env.NEXT_PUBLIC_SITE_URL || '').trim()
+
+    if (!supabaseUrl || !supabaseUrl.startsWith('https://')) {
+      return Response.json(
+        { error: 'NEXT_PUBLIC_SUPABASE_URL inválida ou não configurada.' },
+        { status: 500 }
+      )
+    }
+
+    if (!supabaseKey) {
+      return Response.json(
+        { error: 'NEXT_PUBLIC_SUPABASE_ANON_KEY não configurada.' },
+        { status: 500 }
+      )
+    }
 
     if (!token || !token.startsWith('APP_USR-')) {
       return Response.json(
@@ -42,6 +53,8 @@ export async function POST(req) {
         { status: 500 }
       )
     }
+
+    const supabase = createClient(supabaseUrl, supabaseKey)
 
     const body = await req.json()
     slug = gerarSlug(body?.toName || 'cartinha')
@@ -127,14 +140,8 @@ export async function POST(req) {
 
     return Response.json({ url, slug })
   } catch (error) {
-    if (slug) {
-      await supabase.from('cartinhas').delete().eq('slug', slug)
-    }
-
     return Response.json(
-      {
-        error: `Erro técnico: ${error?.message || 'fetch failed'}`
-      },
+      { error: `Erro técnico: ${error?.message || 'fetch failed'}` },
       { status: 500 }
     )
   }
