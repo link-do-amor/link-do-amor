@@ -1,5 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -23,36 +26,24 @@ export async function POST(req) {
   let slug = ''
 
   try {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-      return new Response(
-        JSON.stringify({ error: 'NEXT_PUBLIC_SUPABASE_URL não configurada.' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+    const token = String(process.env.MP_ACCESS_TOKEN || '').trim()
+    const siteUrl = String(process.env.NEXT_PUBLIC_SITE_URL || '').trim()
+
+    if (!token || !token.startsWith('APP_USR-')) {
+      return Response.json(
+        { error: 'MP_ACCESS_TOKEN inválido ou ainda está como teste.' },
+        { status: 500 }
       )
     }
 
-    if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      return new Response(
-        JSON.stringify({ error: 'NEXT_PUBLIC_SUPABASE_ANON_KEY não configurada.' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      )
-    }
-
-    if (!process.env.MP_ACCESS_TOKEN) {
-      return new Response(
-        JSON.stringify({ error: 'MP_ACCESS_TOKEN não configurado.' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      )
-    }
-
-    if (!process.env.NEXT_PUBLIC_SITE_URL) {
-      return new Response(
-        JSON.stringify({ error: 'NEXT_PUBLIC_SITE_URL não configurada.' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+    if (!siteUrl) {
+      return Response.json(
+        { error: 'NEXT_PUBLIC_SITE_URL não configurada.' },
+        { status: 500 }
       )
     }
 
     const body = await req.json()
-
     slug = gerarSlug(body?.toName || 'cartinha')
 
     const payload = {
@@ -70,96 +61,81 @@ export async function POST(req) {
 
     const { error: insertError } = await supabase
       .from('cartinhas')
-      .insert([
-        {
-          slug,
-          payload,
-          status: 'pendente'
-        }
-      ])
+      .insert([{ slug, payload, status: 'pendente' }])
 
     if (insertError) {
-      return new Response(
-        JSON.stringify({ error: `Erro ao salvar cartinha: ${insertError.message}` }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      return Response.json(
+        { error: `Erro Supabase: ${insertError.message}` },
+        { status: 500 }
       )
     }
 
-    const mpBody = {
-      items: [
-        {
-          title: `Cartinha do Amor para ${payload.toName || 'Pessoa especial'} 💌`,
-          quantity: 1,
-          currency_id: 'BRL',
-          unit_price: 9.9
-        }
-      ],
-      external_reference: slug,
-      metadata: {
-        slug
-      },
-      back_urls: {
-        success: `${process.env.NEXT_PUBLIC_SITE_URL}/sucesso?slug=${slug}`,
-        failure: `${process.env.NEXT_PUBLIC_SITE_URL}/erro?slug=${slug}`,
-        pending: `${process.env.NEXT_PUBLIC_SITE_URL}/pendente?slug=${slug}`
-      },
-      auto_return: 'approved'
-    }
-
-    const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
+    const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+        Authorization: `Bearer ${token}`,
         'X-Idempotency-Key': `${slug}-${Date.now()}`
       },
-      body: JSON.stringify(mpBody)
+      body: JSON.stringify({
+        items: [
+          {
+            title: `Cartinha do Amor para ${payload.toName || 'Pessoa especial'} 💌`,
+            quantity: 1,
+            currency_id: 'BRL',
+            unit_price: 9.9
+          }
+        ],
+        external_reference: slug,
+        metadata: { slug },
+        back_urls: {
+          success: `${siteUrl}/sucesso?slug=${slug}`,
+          failure: `${siteUrl}/erro?slug=${slug}`,
+          pending: `${siteUrl}/pendente?slug=${slug}`
+        },
+        auto_return: 'approved'
+      })
     })
 
-    const data = await response.json()
+    const data = await mpResponse.json()
 
-    if (!response.ok) {
+    if (!mpResponse.ok) {
       await supabase.from('cartinhas').delete().eq('slug', slug)
 
-      return new Response(
-        JSON.stringify({
+      return Response.json(
+        {
           error:
             data?.message ||
+            data?.error ||
             data?.cause?.[0]?.description ||
-            'Erro ao criar pagamento no Mercado Pago.'
-        }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+            'Erro Mercado Pago.'
+        },
+        { status: 500 }
       )
     }
 
-    const checkoutUrl = data.init_point || data.sandbox_init_point
+    const url = data.init_point || data.sandbox_init_point
 
-    if (!checkoutUrl) {
+    if (!url) {
       await supabase.from('cartinhas').delete().eq('slug', slug)
 
-      return new Response(
-        JSON.stringify({ error: 'Mercado Pago não retornou a URL de pagamento.' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      return Response.json(
+        { error: 'Mercado Pago não retornou URL de pagamento.' },
+        { status: 500 }
       )
     }
 
-    return new Response(
-      JSON.stringify({
-        url: checkoutUrl,
-        slug
-      }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    )
+    return Response.json({ url, slug })
   } catch (error) {
     if (slug) {
       await supabase.from('cartinhas').delete().eq('slug', slug)
     }
 
-    return new Response(
-      JSON.stringify({
-        error: error?.message || 'Erro interno ao criar pagamento.'
-      }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    return Response.json(
+      {
+        error: `Erro técnico: ${error?.message || 'fetch failed'}`
+      },
+      { status: 500 }
     )
   }
 }
