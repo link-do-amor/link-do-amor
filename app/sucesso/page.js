@@ -1,18 +1,43 @@
 import { createClient } from '@supabase/supabase-js'
 
+export const dynamic = 'force-dynamic'
+
 export default async function Sucesso({ searchParams }) {
-  const slug = searchParams?.slug || ''
+  const slug = searchParams?.slug || searchParams?.external_reference || ''
+  const paymentId = searchParams?.payment_id || searchParams?.collection_id || ''
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  )
+  const supabaseUrl = String(process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim()
+  const serviceKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim()
+  const token = String(process.env.MP_ACCESS_TOKEN || '').trim()
 
-  if (slug) {
-    await supabase
-      .from('cartinhas')
-      .update({ status: 'aprovado' })
-      .eq('slug', slug)
+  let aprovado = false
+
+  if (supabaseUrl && serviceKey && slug) {
+    const supabase = createClient(supabaseUrl, serviceKey)
+
+    if (paymentId && token) {
+      const res = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        cache: 'no-store'
+      })
+
+      const payment = await res.json()
+
+      if (payment?.status === 'approved') {
+        aprovado = true
+      }
+    } else {
+      aprovado = true
+    }
+
+    if (aprovado) {
+      await supabase
+        .from('cartinhas')
+        .update({ status: 'aprovado' })
+        .eq('slug', slug)
+    }
   }
 
   return (
