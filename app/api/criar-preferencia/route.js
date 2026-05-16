@@ -74,7 +74,13 @@ export async function POST(req) {
 
     const { error: insertError } = await supabase
       .from('cartinhas')
-      .insert([{ slug, payload, status: 'pendente' }])
+      .insert([
+        {
+          slug,
+          payload,
+          status: 'pendente'
+        }
+      ])
 
     if (insertError) {
       return Response.json(
@@ -100,13 +106,16 @@ export async function POST(req) {
           }
         ],
         external_reference: slug,
-        metadata: { slug },
+        metadata: {
+          slug
+        },
         back_urls: {
           success: `${siteUrl}/sucesso?slug=${slug}`,
           failure: `${siteUrl}/erro?slug=${slug}`,
           pending: `${siteUrl}/pendente?slug=${slug}`
         },
-        auto_return: 'approved'
+        auto_return: 'approved',
+        binary_mode: true
       })
     })
 
@@ -138,10 +147,15 @@ export async function POST(req) {
       )
     }
 
-    return Response.json({ url, slug })
+    return Response.json({
+      url,
+      slug
+    })
   } catch (error) {
     return Response.json(
-      { error: `Erro técnico: ${error?.message || 'fetch failed'}` },
+      {
+        error: `Erro técnico: ${error?.message || 'fetch failed'}`
+      },
       { status: 500 }
     )
   }
