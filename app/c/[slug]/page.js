@@ -37,7 +37,7 @@ export default async function CartinhaPage({ params }) {
   if (error || !data?.payload) {
     return (
       <main style={pageStyle}>
-        <div style={boxStyle}>
+        <div style={statusBoxStyle}>
           <h1>Cartinha não encontrada 💔</h1>
           <p>Essa cartinha não existe ou foi removida.</p>
         </div>
@@ -48,10 +48,10 @@ export default async function CartinhaPage({ params }) {
   if (data.status !== 'aprovado') {
     return (
       <main style={pageStyle}>
-        <div style={boxStyle}>
+        <div style={statusBoxStyle}>
           <h1>Cartinha bloqueada 🔒</h1>
           <p>Essa surpresa será liberada após a confirmação do pagamento.</p>
-          <a href="/" style={buttonStyle}>Voltar ao site</a>
+          <a href="/" style={primaryButtonStyle}>Voltar ao site</a>
         </div>
       </main>
     )
@@ -75,29 +75,36 @@ export default async function CartinhaPage({ params }) {
   return (
     <main style={pageStyle}>
       <style>{`
+        * { box-sizing: border-box; }
+
         @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(24px); }
+          from { opacity: 0; transform: translateY(26px); }
           to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes float {
+        @keyframes floatSoft {
           0%, 100% { transform: translateY(0px) rotate(-2deg); }
-          50% { transform: translateY(-12px) rotate(2deg); }
+          50% { transform: translateY(-14px) rotate(2deg); }
         }
 
-        @keyframes glow {
-          0%, 100% { opacity: .45; transform: scale(1); }
+        @keyframes glowPulse {
+          0%, 100% { opacity: .38; transform: scale(1); }
           50% { opacity: .9; transform: scale(1.08); }
         }
 
         @keyframes shimmer {
-          0% { transform: translateX(-120%); }
-          100% { transform: translateX(120%); }
+          0% { transform: translateX(-130%); }
+          100% { transform: translateX(130%); }
         }
 
-        @media (max-width: 760px) {
+        @keyframes openLetter {
+          from { opacity: 0; transform: scale(.94) rotateX(8deg); }
+          to { opacity: 1; transform: scale(1) rotateX(0deg); }
+        }
+
+        @media (max-width: 820px) {
           .letter-paper {
-            padding: 42px 24px !important;
+            padding: 46px 24px 42px !important;
           }
 
           .letter-title {
@@ -108,6 +115,10 @@ export default async function CartinhaPage({ params }) {
             font-size: 25px !important;
           }
 
+          .signature {
+            font-size: 54px !important;
+          }
+
           .photo-grid {
             grid-template-columns: 1fr !important;
           }
@@ -115,40 +126,47 @@ export default async function CartinhaPage({ params }) {
           .actions {
             grid-template-columns: 1fr !important;
           }
+
+          .candle {
+            display: none !important;
+          }
         }
       `}</style>
 
       <div style={glowOneStyle} />
       <div style={glowTwoStyle} />
+      <div style={glowThreeStyle} />
 
-      <div style={petalOneStyle}>🌹</div>
-      <div style={petalTwoStyle}>💌</div>
-      <div style={petalThreeStyle}>❤️</div>
-      <div style={petalFourStyle}>✨</div>
+      <div style={floatingRoseOneStyle}>🌹</div>
+      <div style={floatingRoseTwoStyle}>🌹</div>
+      <div style={floatingHeartOneStyle}>❤</div>
+      <div style={floatingHeartTwoStyle}>❤</div>
+      <div style={floatingSparkleStyle}>✨</div>
 
-      <section style={headerStyle}>
-        <div style={smallLineStyle} />
-        <span style={headerTextStyle}>CARTINHA ESPECIAL</span>
-        <div style={smallLineStyle} />
+      <section style={topStyle}>
+        <div style={lineStyle} />
+        <span style={topTextStyle}>CARTINHA ESPECIAL</span>
+        <div style={lineStyle} />
       </section>
 
       <p style={subtitleStyle}>
-        Uma mensagem feita com carinho, só para você.
+        Feita com carinho, guardada como memória.
       </p>
 
       <section style={sceneStyle}>
-        <div style={candleStyle}>
+        <div className="candle" style={candleStyle}>
           <div style={flameStyle} />
         </div>
 
         <article className="letter-paper" style={paperStyle}>
+          <div style={paperTextureStyle} />
           <div style={paperShineStyle} />
 
-          <div style={paperDateStyle}>
+          <div style={dateStyle}>
             {new Intl.DateTimeFormat('pt-BR').format(new Date())}
           </div>
 
-          <div style={heartStyle}>♡</div>
+          <div style={heartTopStyle}>♡</div>
 
           <h1 className="letter-title" style={letterTitleStyle}>
             Minha {p.toName || 'pessoa especial'},
@@ -166,19 +184,22 @@ export default async function CartinhaPage({ params }) {
 
           <div style={signatureWrapStyle}>
             <span style={signatureLabelStyle}>Com todo meu amor,</span>
-            <span style={signatureStyle}>{p.fromName || 'Alguém especial'}</span>
+            <span className="signature" style={signatureStyle}>
+              {p.fromName || 'Alguém especial'}
+            </span>
           </div>
 
-          <div style={bottomHeartStyle}>♡</div>
+          <div style={heartBottomStyle}>♡</div>
         </article>
 
         {photos.length > 0 && (
-          <section style={photoSectionStyle}>
-            <h2 style={photoTitleStyle}>Nossas memórias 📸</h2>
+          <section style={memoriesStyle}>
+            <span style={sectionLabelStyle}>MEMÓRIAS</span>
+            <h2 style={sectionTitleStyle}>Momentos que merecem ficar</h2>
 
             <div className="photo-grid" style={photoGridStyle}>
               {photos.map((photo, index) => (
-                <div key={index} style={photoFrameStyle}>
+                <div key={index} style={photoFrameStyle(index)}>
                   <img
                     src={photo}
                     alt={`Memória ${index + 1}`}
@@ -192,7 +213,8 @@ export default async function CartinhaPage({ params }) {
 
         {p.musicUrl && (
           <section style={musicBoxStyle}>
-            <h2 style={musicTitleStyle}>Nossa música 🎵</h2>
+            <span style={sectionLabelStyle}>TRILHA SONORA</span>
+            <h2 style={sectionTitleStyle}>Nossa música 🎵</h2>
 
             {musicEmbed ? (
               <iframe
@@ -215,7 +237,7 @@ export default async function CartinhaPage({ params }) {
         </div>
 
         <div className="actions" style={actionsStyle}>
-          <a href={whatsappUrl} target="_blank" rel="noreferrer" style={buttonStyle}>
+          <a href={whatsappUrl} target="_blank" rel="noreferrer" style={primaryButtonStyle}>
             💖 Responder essa cartinha
           </a>
 
@@ -223,6 +245,10 @@ export default async function CartinhaPage({ params }) {
             Criar outra cartinha
           </a>
         </div>
+
+        <p style={footerNoteStyle}>
+          Criado com Link do Amor 💌
+        </p>
       </section>
     </main>
   )
@@ -234,7 +260,7 @@ const pageStyle = {
   color: '#fff',
   fontFamily: 'Georgia, serif',
   background:
-    'radial-gradient(circle at 20% 12%, rgba(255,90,95,0.26), transparent 26%), radial-gradient(circle at 80% 18%, rgba(255,184,92,0.18), transparent 25%), linear-gradient(180deg, #2a0207 0%, #100002 100%)',
+    'radial-gradient(circle at 20% 12%, rgba(255,90,95,0.30), transparent 24%), radial-gradient(circle at 78% 18%, rgba(255,184,92,0.18), transparent 24%), radial-gradient(circle at 50% 100%, rgba(140,0,20,0.50), transparent 35%), linear-gradient(180deg, #2b0207 0%, #120002 100%)',
   position: 'relative',
   overflow: 'hidden'
 }
@@ -243,63 +269,90 @@ const glowOneStyle = {
   position: 'fixed',
   top: 80,
   left: -90,
-  width: 300,
-  height: 300,
+  width: 320,
+  height: 320,
   borderRadius: '50%',
-  background: 'rgba(255,60,100,0.18)',
-  filter: 'blur(80px)',
-  animation: 'glow 5s infinite'
+  background: 'rgba(255,60,100,0.20)',
+  filter: 'blur(85px)',
+  animation: 'glowPulse 5s infinite'
 }
 
 const glowTwoStyle = {
   position: 'fixed',
   right: -100,
   bottom: 90,
-  width: 320,
-  height: 320,
+  width: 340,
+  height: 340,
   borderRadius: '50%',
   background: 'rgba(255,150,70,0.16)',
-  filter: 'blur(80px)',
-  animation: 'glow 7s infinite'
+  filter: 'blur(85px)',
+  animation: 'glowPulse 7s infinite'
 }
 
-const petalOneStyle = {
+const glowThreeStyle = {
   position: 'fixed',
-  top: '12%',
-  left: '6%',
-  fontSize: 44,
-  opacity: 0.5,
-  animation: 'float 6s ease-in-out infinite'
+  top: '40%',
+  left: '42%',
+  width: 260,
+  height: 260,
+  borderRadius: '50%',
+  background: 'rgba(255,210,150,0.08)',
+  filter: 'blur(90px)'
 }
 
-const petalTwoStyle = {
+const floatingRoseOneStyle = {
   position: 'fixed',
-  top: '22%',
-  right: '8%',
-  fontSize: 38,
+  top: '13%',
+  left: '5%',
+  fontSize: 56,
   opacity: 0.45,
-  animation: 'float 7s ease-in-out infinite'
+  animation: 'floatSoft 7s ease-in-out infinite',
+  pointerEvents: 'none'
 }
 
-const petalThreeStyle = {
+const floatingRoseTwoStyle = {
   position: 'fixed',
-  bottom: '18%',
-  left: '9%',
+  right: '5%',
+  bottom: '16%',
+  fontSize: 62,
+  opacity: 0.42,
+  animation: 'floatSoft 8s ease-in-out infinite',
+  pointerEvents: 'none'
+}
+
+const floatingHeartOneStyle = {
+  position: 'fixed',
+  top: '24%',
+  right: '9%',
+  color: '#ff7a8e',
+  fontSize: 32,
+  opacity: 0.45,
+  animation: 'floatSoft 6s ease-in-out infinite',
+  pointerEvents: 'none'
+}
+
+const floatingHeartTwoStyle = {
+  position: 'fixed',
+  bottom: '22%',
+  left: '8%',
+  color: '#ffb1bc',
+  fontSize: 30,
+  opacity: 0.42,
+  animation: 'floatSoft 8s ease-in-out infinite',
+  pointerEvents: 'none'
+}
+
+const floatingSparkleStyle = {
+  position: 'fixed',
+  top: '52%',
+  right: '12%',
   fontSize: 34,
-  opacity: 0.42,
-  animation: 'float 8s ease-in-out infinite'
+  opacity: 0.40,
+  animation: 'floatSoft 6.5s ease-in-out infinite',
+  pointerEvents: 'none'
 }
 
-const petalFourStyle = {
-  position: 'fixed',
-  bottom: '12%',
-  right: '14%',
-  fontSize: 36,
-  opacity: 0.42,
-  animation: 'float 6.5s ease-in-out infinite'
-}
-
-const headerStyle = {
+const topStyle = {
   maxWidth: 960,
   margin: '0 auto',
   display: 'flex',
@@ -310,13 +363,13 @@ const headerStyle = {
   zIndex: 2
 }
 
-const smallLineStyle = {
+const lineStyle = {
   flex: 1,
   height: 1,
   background: 'rgba(255,215,163,0.34)'
 }
 
-const headerTextStyle = {
+const topTextStyle = {
   fontFamily: 'Arial, sans-serif',
   fontSize: 14,
   fontWeight: 900,
@@ -334,7 +387,7 @@ const subtitleStyle = {
 
 const sceneStyle = {
   width: '100%',
-  maxWidth: 900,
+  maxWidth: 920,
   margin: '0 auto',
   position: 'relative',
   zIndex: 2,
@@ -343,29 +396,41 @@ const sceneStyle = {
 
 const paperStyle = {
   position: 'relative',
-  padding: '64px 48px 58px',
-  borderRadius: 16,
+  padding: '68px 52px 60px',
+  borderRadius: 18,
   overflow: 'hidden',
   background:
-    'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.38), transparent 24%), linear-gradient(180deg, #f6d1a0 0%, #e4ae74 100%)',
+    'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.40), transparent 24%), linear-gradient(180deg, #f6d1a0 0%, #e5ae75 100%)',
   color: '#2d0f0a',
   border: '1px solid rgba(110,50,15,0.36)',
   boxShadow:
-    '0 38px 100px rgba(0,0,0,0.52), inset 0 0 44px rgba(120,50,10,0.17)'
+    '0 42px 110px rgba(0,0,0,0.55), inset 0 0 44px rgba(120,50,10,0.18)',
+  animation: 'openLetter .9s ease both',
+  transformOrigin: 'top center'
+}
+
+const paperTextureStyle = {
+  position: 'absolute',
+  inset: 0,
+  background:
+    'linear-gradient(90deg, rgba(70,25,5,0.04) 1px, transparent 1px), linear-gradient(180deg, rgba(70,25,5,0.035) 1px, transparent 1px)',
+  backgroundSize: '26px 26px',
+  opacity: 0.35,
+  pointerEvents: 'none'
 }
 
 const paperShineStyle = {
   position: 'absolute',
   top: 0,
   left: 0,
-  width: '40%',
+  width: '42%',
   height: '100%',
   background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)',
-  animation: 'shimmer 4.5s infinite',
+  animation: 'shimmer 4.8s infinite',
   pointerEvents: 'none'
 }
 
-const paperDateStyle = {
+const dateStyle = {
   position: 'absolute',
   top: 24,
   right: 34,
@@ -374,23 +439,23 @@ const paperDateStyle = {
   color: '#4c1a14'
 }
 
-const heartStyle = {
+const heartTopStyle = {
   textAlign: 'center',
-  fontSize: 44,
+  fontSize: 46,
   color: '#c94b5b',
   marginBottom: 6
 }
 
 const letterTitleStyle = {
   fontFamily: '"Brush Script MT", "Segoe Script", cursive',
-  fontSize: 'clamp(42px, 8vw, 66px)',
+  fontSize: 'clamp(44px, 8vw, 68px)',
   fontWeight: 400,
   margin: 0,
   color: '#2c0c08'
 }
 
 const underlineStyle = {
-  width: 240,
+  width: 250,
   height: 3,
   borderRadius: 999,
   background: '#d85b68',
@@ -437,7 +502,7 @@ const signatureStyle = {
   borderBottom: '4px solid rgba(216,91,104,0.76)'
 }
 
-const bottomHeartStyle = {
+const heartBottomStyle = {
   position: 'absolute',
   right: 42,
   bottom: 30,
@@ -447,13 +512,13 @@ const bottomHeartStyle = {
 
 const candleStyle = {
   position: 'absolute',
-  top: -28,
+  top: -30,
   right: -12,
   width: 78,
   height: 94,
   borderRadius: '22px 22px 12px 12px',
   background: 'linear-gradient(180deg, #fff0d0, #d18a45)',
-  boxShadow: '0 0 48px rgba(255,170,70,0.82)',
+  boxShadow: '0 0 52px rgba(255,170,70,0.86)',
   zIndex: 4
 }
 
@@ -466,20 +531,32 @@ const flameStyle = {
   boxShadow: '0 0 26px rgba(255,170,60,1)'
 }
 
-const photoSectionStyle = {
-  marginTop: 30,
-  padding: 22,
-  borderRadius: 26,
+const memoriesStyle = {
+  marginTop: 34,
+  padding: 24,
+  borderRadius: 30,
   background: 'rgba(255,255,255,0.075)',
   border: '1px solid rgba(255,255,255,0.13)',
   backdropFilter: 'blur(10px)'
 }
 
-const photoTitleStyle = {
-  marginTop: 0,
+const sectionLabelStyle = {
+  display: 'block',
+  textAlign: 'center',
+  color: '#ffb8c7',
+  fontFamily: 'Arial, sans-serif',
+  fontSize: 12,
+  fontWeight: 900,
+  letterSpacing: 2,
+  marginBottom: 8
+}
+
+const sectionTitleStyle = {
+  margin: '0 0 20px',
   textAlign: 'center',
   color: '#ffd7a3',
-  fontFamily: 'Arial, sans-serif'
+  fontFamily: 'Arial, sans-serif',
+  fontSize: 28
 }
 
 const photoGridStyle = {
@@ -488,34 +565,30 @@ const photoGridStyle = {
   gap: 16
 }
 
-const photoFrameStyle = {
+const photoFrameStyle = (index) => ({
   padding: 8,
   borderRadius: 18,
   background: 'rgba(255,230,190,0.10)',
-  transform: 'rotate(-1deg)'
-}
+  transform: index % 2 === 0 ? 'rotate(-1.4deg)' : 'rotate(1.4deg)',
+  boxShadow: '0 18px 40px rgba(0,0,0,0.25)'
+})
 
 const photoStyle = {
   width: '100%',
-  height: 240,
+  height: 245,
   objectFit: 'cover',
   borderRadius: 14,
   display: 'block'
 }
 
 const musicBoxStyle = {
-  marginTop: 24,
-  padding: 22,
-  borderRadius: 26,
+  marginTop: 26,
+  padding: 24,
+  borderRadius: 30,
   background: 'rgba(255,255,255,0.075)',
   border: '1px solid rgba(255,255,255,0.13)',
-  textAlign: 'center'
-}
-
-const musicTitleStyle = {
-  color: '#ffd7a3',
-  fontFamily: 'Arial, sans-serif',
-  marginTop: 0
+  textAlign: 'center',
+  backdropFilter: 'blur(10px)'
 }
 
 const iframeStyle = {
@@ -529,7 +602,7 @@ const musicLinkStyle = {
 }
 
 const quoteStyle = {
-  margin: '34px 0 24px',
+  margin: '36px 0 24px',
   textAlign: 'center',
   color: '#ffd7a3',
   fontFamily: '"Segoe Script", cursive',
@@ -537,14 +610,14 @@ const quoteStyle = {
 }
 
 const actionsStyle = {
-  maxWidth: 560,
+  maxWidth: 600,
   margin: '0 auto',
   display: 'grid',
   gridTemplateColumns: '1fr 1fr',
   gap: 14
 }
 
-const buttonStyle = {
+const primaryButtonStyle = {
   display: 'block',
   textAlign: 'center',
   textDecoration: 'none',
@@ -572,7 +645,15 @@ const secondaryButtonStyle = {
   fontWeight: 900
 }
 
-const boxStyle = {
+const footerNoteStyle = {
+  marginTop: 28,
+  textAlign: 'center',
+  color: 'rgba(255,255,255,0.50)',
+  fontFamily: 'Arial, sans-serif',
+  fontWeight: 700
+}
+
+const statusBoxStyle = {
   width: '100%',
   maxWidth: 640,
   margin: '120px auto',
@@ -583,5 +664,6 @@ const boxStyle = {
   color: '#fff',
   textAlign: 'center',
   position: 'relative',
-  zIndex: 2
+  zIndex: 2,
+  fontFamily: 'Arial, sans-serif'
 }
