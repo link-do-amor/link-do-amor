@@ -1,14 +1,39 @@
+Perfeito. Substitui **inteiro**:
+
+```txt
+app/c/[slug]/page.js
+```
+
+por este código completo:
+
+```javascript
 import { createClient } from '@supabase/supabase-js'
+
+export const dynamic = 'force-dynamic'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
-export const dynamic = 'force-dynamic'
+function getMusicEmbed(url) {
+  if (!url) return null
 
-function formatDate() {
-  return new Intl.DateTimeFormat('pt-BR').format(new Date())
+  if (url.includes('spotify.com')) {
+    return url.replace('open.spotify.com/', 'open.spotify.com/embed/')
+  }
+
+  if (url.includes('youtube.com/watch?v=')) {
+    const id = url.split('v=')[1]?.split('&')[0]
+    return id ? `https://www.youtube.com/embed/${id}` : null
+  }
+
+  if (url.includes('youtu.be/')) {
+    const id = url.split('youtu.be/')[1]?.split('?')[0]
+    return id ? `https://www.youtube.com/embed/${id}` : null
+  }
+
+  return null
 }
 
 export default async function CartinhaPage({ params }) {
@@ -21,9 +46,9 @@ export default async function CartinhaPage({ params }) {
   if (error || !data?.payload) {
     return (
       <main style={pageStyle}>
-        <div style={cardStyle}>
-          <h1 style={titleStyle}>Cartinha não encontrada 💔</h1>
-          <p style={textStyle}>Essa cartinha não existe ou foi removida.</p>
+        <div style={boxStyle}>
+          <h1>Cartinha não encontrada 💔</h1>
+          <p>Essa cartinha não existe ou foi removida.</p>
         </div>
       </main>
     )
@@ -32,9 +57,9 @@ export default async function CartinhaPage({ params }) {
   if (data.status !== 'aprovado') {
     return (
       <main style={pageStyle}>
-        <div style={cardStyle}>
-          <h1 style={titleStyle}>Cartinha bloqueada 🔒</h1>
-          <p style={textStyle}>Essa surpresa será liberada após a confirmação do pagamento.</p>
+        <div style={boxStyle}>
+          <h1>Cartinha bloqueada 🔒</h1>
+          <p>Essa surpresa será liberada após a confirmação do pagamento.</p>
           <a href="/" style={buttonStyle}>Voltar ao site</a>
         </div>
       </main>
@@ -43,6 +68,7 @@ export default async function CartinhaPage({ params }) {
 
   const p = data.payload || {}
   const photos = Array.isArray(p.photos) ? p.photos : []
+  const musicEmbed = getMusicEmbed(p.musicUrl)
 
   const whatsappNumber = String(p.whatsapp || '').replace(/\D/g, '')
   const whatsappText = encodeURIComponent(
@@ -57,88 +83,149 @@ export default async function CartinhaPage({ params }) {
 
   return (
     <main style={pageStyle}>
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(-2deg); }
+          50% { transform: translateY(-12px) rotate(2deg); }
+        }
+
+        @keyframes glow {
+          0%, 100% { opacity: .45; transform: scale(1); }
+          50% { opacity: .9; transform: scale(1.08); }
+        }
+
+        @keyframes shimmer {
+          0% { transform: translateX(-120%); }
+          100% { transform: translateX(120%); }
+        }
+
+        @media (max-width: 760px) {
+          .letter-paper {
+            padding: 42px 24px !important;
+          }
+
+          .letter-title {
+            font-size: 42px !important;
+          }
+
+          .letter-message {
+            font-size: 25px !important;
+          }
+
+          .photo-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .actions {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+
       <div style={glowOneStyle} />
       <div style={glowTwoStyle} />
 
+      <div style={petalOneStyle}>🌹</div>
+      <div style={petalTwoStyle}>💌</div>
+      <div style={petalThreeStyle}>❤️</div>
+      <div style={petalFourStyle}>✨</div>
+
       <section style={headerStyle}>
-        <div style={lineStyle} />
-        <div style={headerTextStyle}>♥ CARTINHA ESPECIAL ♥</div>
-        <div style={lineStyle} />
+        <div style={smallLineStyle} />
+        <span style={headerTextStyle}>CARTINHA ESPECIAL</span>
+        <div style={smallLineStyle} />
       </section>
 
-      <p style={subtitleStyle}>Feita com todo meu amor, só para você.</p>
+      <p style={subtitleStyle}>
+        Uma mensagem feita com carinho, só para você.
+      </p>
 
       <section style={sceneStyle}>
         <div style={candleStyle}>
           <div style={flameStyle} />
         </div>
 
-        <div style={roseLeftStyle}>🌹</div>
-        <div style={roseRightStyle}>🌹</div>
-        <div style={petalOneStyle}>❤</div>
-        <div style={petalTwoStyle}>❤</div>
-        <div style={petalThreeStyle}>❤</div>
+        <article className="letter-paper" style={paperStyle}>
+          <div style={paperShineStyle} />
 
-        <article style={paperStyle}>
-          <div style={dateStyle}>{formatDate()}</div>
+          <div style={paperDateStyle}>
+            {new Intl.DateTimeFormat('pt-BR').format(new Date())}
+          </div>
 
-          <div style={heartTopStyle}>♡</div>
+          <div style={heartStyle}>♡</div>
 
-          <h1 style={letterTitleStyle}>
+          <h1 className="letter-title" style={letterTitleStyle}>
             Minha {p.toName || 'pessoa especial'},
           </h1>
 
           <div style={underlineStyle} />
 
-          <div style={messageStyle}>
+          <div className="letter-message" style={messageStyle}>
             {p.message || 'Uma mensagem especial foi escrita para você.'}
           </div>
 
-          <div style={finalLineStyle}>
+          <div style={finalPhraseStyle}>
             Te amo mais do que as palavras conseguem dizer.
           </div>
 
           <div style={signatureWrapStyle}>
-            <span style={signatureSmallStyle}>Com todo meu amor,</span>
+            <span style={signatureLabelStyle}>Com todo meu amor,</span>
             <span style={signatureStyle}>{p.fromName || 'Alguém especial'}</span>
           </div>
 
-          <div style={heartBottomStyle}>♡</div>
+          <div style={bottomHeartStyle}>♡</div>
         </article>
 
         {photos.length > 0 && (
-          <div style={photoSectionStyle}>
+          <section style={photoSectionStyle}>
             <h2 style={photoTitleStyle}>Nossas memórias 📸</h2>
 
-            <div style={photoGridStyle}>
+            <div className="photo-grid" style={photoGridStyle}>
               {photos.map((photo, index) => (
-                <img
-                  key={index}
-                  src={photo}
-                  alt={`Foto ${index + 1}`}
-                  style={photoStyle}
-                />
+                <div key={index} style={photoFrameStyle}>
+                  <img
+                    src={photo}
+                    alt={`Memória ${index + 1}`}
+                    style={photoStyle}
+                  />
+                </div>
               ))}
             </div>
-          </div>
+          </section>
         )}
 
         {p.musicUrl && (
-          <div style={musicBoxStyle}>
-            <div style={musicTitleStyle}>Nossa música 🎵</div>
-            <a href={p.musicUrl} target="_blank" rel="noreferrer" style={musicLinkStyle}>
-              Abrir música
-            </a>
-          </div>
+          <section style={musicBoxStyle}>
+            <h2 style={musicTitleStyle}>Nossa música 🎵</h2>
+
+            {musicEmbed ? (
+              <iframe
+                src={musicEmbed}
+                width="100%"
+                height={p.musicUrl.includes('spotify') ? '152' : '315'}
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                style={iframeStyle}
+              />
+            ) : (
+              <a href={p.musicUrl} target="_blank" rel="noreferrer" style={musicLinkStyle}>
+                Abrir música
+              </a>
+            )}
+          </section>
         )}
 
         <div style={quoteStyle}>
           “Você é meu hoje e todos os meus amanhãs.”
         </div>
 
-        <div style={actionsStyle}>
+        <div className="actions" style={actionsStyle}>
           <a href={whatsappUrl} target="_blank" rel="noreferrer" style={buttonStyle}>
-            💖 Responder no WhatsApp
+            💖 Responder essa cartinha
           </a>
 
           <a href="/" style={secondaryButtonStyle}>
@@ -152,11 +239,11 @@ export default async function CartinhaPage({ params }) {
 
 const pageStyle = {
   minHeight: '100vh',
-  padding: '28px 18px 50px',
-  color: '#3a120f',
+  padding: '28px 18px 60px',
+  color: '#fff',
   fontFamily: 'Georgia, serif',
   background:
-    'radial-gradient(circle at 15% 10%, rgba(255,80,90,0.28), transparent 26%), radial-gradient(circle at 80% 20%, rgba(255,180,90,0.18), transparent 24%), linear-gradient(180deg, #2b0206 0%, #110002 100%)',
+    'radial-gradient(circle at 20% 12%, rgba(255,90,95,0.26), transparent 26%), radial-gradient(circle at 80% 18%, rgba(255,184,92,0.18), transparent 25%), linear-gradient(180deg, #2a0207 0%, #100002 100%)',
   position: 'relative',
   overflow: 'hidden'
 }
@@ -164,27 +251,65 @@ const pageStyle = {
 const glowOneStyle = {
   position: 'fixed',
   top: 80,
-  left: -80,
-  width: 260,
-  height: 260,
+  left: -90,
+  width: 300,
+  height: 300,
   borderRadius: '50%',
-  background: 'rgba(255,40,80,0.18)',
-  filter: 'blur(70px)'
+  background: 'rgba(255,60,100,0.18)',
+  filter: 'blur(80px)',
+  animation: 'glow 5s infinite'
 }
 
 const glowTwoStyle = {
   position: 'fixed',
-  right: -70,
-  bottom: 80,
-  width: 260,
-  height: 260,
+  right: -100,
+  bottom: 90,
+  width: 320,
+  height: 320,
   borderRadius: '50%',
-  background: 'rgba(255,150,70,0.14)',
-  filter: 'blur(70px)'
+  background: 'rgba(255,150,70,0.16)',
+  filter: 'blur(80px)',
+  animation: 'glow 7s infinite'
+}
+
+const petalOneStyle = {
+  position: 'fixed',
+  top: '12%',
+  left: '6%',
+  fontSize: 44,
+  opacity: 0.5,
+  animation: 'float 6s ease-in-out infinite'
+}
+
+const petalTwoStyle = {
+  position: 'fixed',
+  top: '22%',
+  right: '8%',
+  fontSize: 38,
+  opacity: 0.45,
+  animation: 'float 7s ease-in-out infinite'
+}
+
+const petalThreeStyle = {
+  position: 'fixed',
+  bottom: '18%',
+  left: '9%',
+  fontSize: 34,
+  opacity: 0.42,
+  animation: 'float 8s ease-in-out infinite'
+}
+
+const petalFourStyle = {
+  position: 'fixed',
+  bottom: '12%',
+  right: '14%',
+  fontSize: 36,
+  opacity: 0.42,
+  animation: 'float 6.5s ease-in-out infinite'
 }
 
 const headerStyle = {
-  maxWidth: 900,
+  maxWidth: 960,
   margin: '0 auto',
   display: 'flex',
   alignItems: 'center',
@@ -194,100 +319,113 @@ const headerStyle = {
   zIndex: 2
 }
 
-const lineStyle = {
+const smallLineStyle = {
   flex: 1,
   height: 1,
-  background: 'rgba(255,215,163,0.35)'
+  background: 'rgba(255,215,163,0.34)'
 }
 
 const headerTextStyle = {
   fontFamily: 'Arial, sans-serif',
-  fontSize: 15,
+  fontSize: 14,
   fontWeight: 900,
-  letterSpacing: 1.8
+  letterSpacing: 2.2
 }
 
 const subtitleStyle = {
   textAlign: 'center',
-  color: '#ffd3a0',
+  color: '#ffd7a3',
+  margin: '14px 0 34px',
   fontSize: 17,
-  margin: '14px 0 32px',
   position: 'relative',
   zIndex: 2
 }
 
 const sceneStyle = {
-  maxWidth: 860,
+  width: '100%',
+  maxWidth: 900,
   margin: '0 auto',
   position: 'relative',
-  zIndex: 2
+  zIndex: 2,
+  animation: 'fadeUp .9s ease both'
 }
 
 const paperStyle = {
   position: 'relative',
+  padding: '64px 48px 58px',
+  borderRadius: 16,
+  overflow: 'hidden',
   background:
-    'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.35), transparent 24%), linear-gradient(180deg, #f3c998 0%, #e7b77f 100%)',
-  borderRadius: 10,
-  padding: '58px 42px 54px',
+    'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.38), transparent 24%), linear-gradient(180deg, #f6d1a0 0%, #e4ae74 100%)',
+  color: '#2d0f0a',
+  border: '1px solid rgba(110,50,15,0.36)',
   boxShadow:
-    '0 30px 80px rgba(0,0,0,0.45), inset 0 0 40px rgba(120,50,10,0.18)',
-  border: '1px solid rgba(110,50,15,0.35)',
-  color: '#32110c',
-  overflow: 'hidden'
+    '0 38px 100px rgba(0,0,0,0.52), inset 0 0 44px rgba(120,50,10,0.17)'
 }
 
-const dateStyle = {
+const paperShineStyle = {
   position: 'absolute',
-  top: 22,
-  right: 30,
+  top: 0,
+  left: 0,
+  width: '40%',
+  height: '100%',
+  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)',
+  animation: 'shimmer 4.5s infinite',
+  pointerEvents: 'none'
+}
+
+const paperDateStyle = {
+  position: 'absolute',
+  top: 24,
+  right: 34,
   fontFamily: '"Comic Sans MS", cursive',
   fontSize: 15,
-  color: '#4d1a15'
+  color: '#4c1a14'
 }
 
-const heartTopStyle = {
+const heartStyle = {
   textAlign: 'center',
   fontSize: 44,
   color: '#c94b5b',
-  marginBottom: 8
+  marginBottom: 6
 }
 
 const letterTitleStyle = {
   fontFamily: '"Brush Script MT", "Segoe Script", cursive',
-  fontSize: 'clamp(38px, 8vw, 62px)',
+  fontSize: 'clamp(42px, 8vw, 66px)',
   fontWeight: 400,
-  margin: '0 0 4px',
-  color: '#2e0d09'
+  margin: 0,
+  color: '#2c0c08'
 }
 
 const underlineStyle = {
-  width: 230,
+  width: 240,
   height: 3,
+  borderRadius: 999,
   background: '#d85b68',
-  marginBottom: 28,
-  transform: 'rotate(-2deg)',
-  borderRadius: 999
+  margin: '8px 0 30px',
+  transform: 'rotate(-2deg)'
 }
 
 const messageStyle = {
   fontFamily: '"Segoe Script", "Brush Script MT", cursive',
-  fontSize: 'clamp(24px, 5vw, 36px)',
-  lineHeight: 1.65,
+  fontSize: 'clamp(28px, 5vw, 38px)',
+  lineHeight: 1.64,
   whiteSpace: 'pre-wrap',
-  color: '#2a0f0b'
+  color: '#28100b'
 }
 
-const finalLineStyle = {
+const finalPhraseStyle = {
   fontFamily: '"Segoe Script", "Brush Script MT", cursive',
-  fontSize: 'clamp(25px, 5vw, 36px)',
-  marginTop: 30,
+  fontSize: 'clamp(26px, 5vw, 36px)',
+  marginTop: 34,
   paddingBottom: 8,
-  borderBottom: '3px solid rgba(216,91,104,0.75)',
-  color: '#2a0f0b'
+  borderBottom: '3px solid rgba(216,91,104,0.72)',
+  color: '#28100b'
 }
 
 const signatureWrapStyle = {
-  marginTop: 42,
+  marginTop: 44,
   display: 'flex',
   alignItems: 'end',
   justifyContent: 'space-between',
@@ -295,134 +433,103 @@ const signatureWrapStyle = {
   flexWrap: 'wrap'
 }
 
-const signatureSmallStyle = {
+const signatureLabelStyle = {
   fontFamily: '"Segoe Script", "Brush Script MT", cursive',
   fontSize: 'clamp(24px, 5vw, 34px)'
 }
 
 const signatureStyle = {
   fontFamily: '"Brush Script MT", "Segoe Script", cursive',
-  fontSize: 'clamp(50px, 12vw, 86px)',
-  color: '#3c0e0a',
-  borderBottom: '4px solid rgba(216,91,104,0.75)',
-  lineHeight: 0.9
+  fontSize: 'clamp(54px, 12vw, 90px)',
+  lineHeight: 0.9,
+  color: '#3b0d09',
+  borderBottom: '4px solid rgba(216,91,104,0.76)'
 }
 
-const heartBottomStyle = {
+const bottomHeartStyle = {
   position: 'absolute',
   right: 42,
-  bottom: 32,
-  fontSize: 42,
-  color: '#d85b68'
+  bottom: 30,
+  color: '#d85b68',
+  fontSize: 42
 }
 
 const candleStyle = {
   position: 'absolute',
-  top: -24,
-  right: -20,
+  top: -28,
+  right: -12,
   width: 78,
-  height: 92,
-  borderRadius: '20px 20px 12px 12px',
-  background: 'linear-gradient(180deg, #fff1d0, #d18b45)',
-  boxShadow: '0 0 45px rgba(255,170,70,0.8)',
-  zIndex: 3
+  height: 94,
+  borderRadius: '22px 22px 12px 12px',
+  background: 'linear-gradient(180deg, #fff0d0, #d18a45)',
+  boxShadow: '0 0 48px rgba(255,170,70,0.82)',
+  zIndex: 4
 }
 
 const flameStyle = {
   width: 24,
-  height: 40,
-  borderRadius: '50% 50% 50% 50%',
-  background: 'linear-gradient(180deg, #fff8a8, #ff7b1a)',
+  height: 42,
+  borderRadius: '50%',
+  background: 'linear-gradient(180deg, #fff9a8, #ff7b1a)',
   margin: '10px auto 0',
-  boxShadow: '0 0 24px rgba(255,170,60,1)'
-}
-
-const roseLeftStyle = {
-  position: 'absolute',
-  left: -34,
-  top: 80,
-  fontSize: 74,
-  filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.45))',
-  zIndex: 1
-}
-
-const roseRightStyle = {
-  position: 'absolute',
-  right: -30,
-  bottom: 180,
-  fontSize: 74,
-  transform: 'rotate(24deg)',
-  filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.45))',
-  zIndex: 1
-}
-
-const petalOneStyle = {
-  position: 'absolute',
-  top: 160,
-  left: -10,
-  color: '#ff5a6b',
-  fontSize: 28
-}
-
-const petalTwoStyle = {
-  position: 'absolute',
-  top: 260,
-  right: -8,
-  color: '#ff9a9f',
-  fontSize: 24
-}
-
-const petalThreeStyle = {
-  position: 'absolute',
-  bottom: 120,
-  left: 22,
-  color: '#ff737b',
-  fontSize: 22
+  boxShadow: '0 0 26px rgba(255,170,60,1)'
 }
 
 const photoSectionStyle = {
-  marginTop: 28,
-  padding: 18,
-  borderRadius: 24,
-  background: 'rgba(255,255,255,0.08)',
-  border: '1px solid rgba(255,255,255,0.12)'
+  marginTop: 30,
+  padding: 22,
+  borderRadius: 26,
+  background: 'rgba(255,255,255,0.075)',
+  border: '1px solid rgba(255,255,255,0.13)',
+  backdropFilter: 'blur(10px)'
 }
 
 const photoTitleStyle = {
-  color: '#ffd7a3',
-  textAlign: 'center',
   marginTop: 0,
+  textAlign: 'center',
+  color: '#ffd7a3',
   fontFamily: 'Arial, sans-serif'
 }
 
 const photoGridStyle = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-  gap: 14
+  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+  gap: 16
+}
+
+const photoFrameStyle = {
+  padding: 8,
+  borderRadius: 18,
+  background: 'rgba(255,230,190,0.10)',
+  transform: 'rotate(-1deg)'
 }
 
 const photoStyle = {
   width: '100%',
-  height: 220,
+  height: 240,
   objectFit: 'cover',
-  borderRadius: 18,
-  border: '2px solid rgba(255,220,170,0.4)'
+  borderRadius: 14,
+  display: 'block'
 }
 
 const musicBoxStyle = {
-  marginTop: 22,
-  textAlign: 'center',
-  padding: 18,
-  borderRadius: 22,
-  background: 'rgba(255,255,255,0.08)',
-  border: '1px solid rgba(255,255,255,0.12)'
+  marginTop: 24,
+  padding: 22,
+  borderRadius: 26,
+  background: 'rgba(255,255,255,0.075)',
+  border: '1px solid rgba(255,255,255,0.13)',
+  textAlign: 'center'
 }
 
 const musicTitleStyle = {
   color: '#ffd7a3',
-  fontWeight: 900,
-  marginBottom: 10,
-  fontFamily: 'Arial, sans-serif'
+  fontFamily: 'Arial, sans-serif',
+  marginTop: 0
+}
+
+const iframeStyle = {
+  border: 'none',
+  borderRadius: 18
 }
 
 const musicLinkStyle = {
@@ -431,18 +538,19 @@ const musicLinkStyle = {
 }
 
 const quoteStyle = {
+  margin: '34px 0 24px',
   textAlign: 'center',
   color: '#ffd7a3',
   fontFamily: '"Segoe Script", cursive',
-  fontSize: 25,
-  margin: '34px 0 22px'
+  fontSize: 27
 }
 
 const actionsStyle = {
+  maxWidth: 560,
+  margin: '0 auto',
   display: 'grid',
-  gap: 14,
-  maxWidth: 520,
-  margin: '0 auto'
+  gridTemplateColumns: '1fr 1fr',
+  gap: 14
 }
 
 const buttonStyle = {
@@ -456,7 +564,7 @@ const buttonStyle = {
   fontFamily: 'Arial, sans-serif',
   fontSize: 18,
   fontWeight: 900,
-  boxShadow: '0 16px 40px rgba(255,60,80,0.28)'
+  boxShadow: '0 16px 40px rgba(255,60,80,0.30)'
 }
 
 const secondaryButtonStyle = {
@@ -473,25 +581,17 @@ const secondaryButtonStyle = {
   fontWeight: 900
 }
 
-const cardStyle = {
+const boxStyle = {
   width: '100%',
-  maxWidth: 620,
+  maxWidth: 640,
   margin: '120px auto',
   padding: 34,
   borderRadius: 28,
   background: 'rgba(255,255,255,0.08)',
+  border: '1px solid rgba(255,255,255,0.12)',
   color: '#fff',
-  textAlign: 'center'
+  textAlign: 'center',
+  position: 'relative',
+  zIndex: 2
 }
-
-const titleStyle = {
-  fontFamily: 'Arial, sans-serif',
-  fontSize: 40,
-  marginTop: 0
-}
-
-const textStyle = {
-  fontFamily: 'Arial, sans-serif',
-  fontSize: 18,
-  lineHeight: 1.6
-}
+```
