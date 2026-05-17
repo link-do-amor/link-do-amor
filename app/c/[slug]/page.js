@@ -1,12 +1,3 @@
-Perfeito. Substitui **inteiro**:
-
-```txt
-app/c/[slug]/page.js
-```
-
-por este código completo:
-
-```javascript
 import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
@@ -594,4 +585,3 @@ const boxStyle = {
   position: 'relative',
   zIndex: 2
 }
-```
