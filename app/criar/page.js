@@ -117,6 +117,13 @@ export default function CriarPage() {
     try {
       setPaying(true)
 
+      if (typeof window !== 'undefined' && window.fbq) {
+        window.fbq('track', 'InitiateCheckout', {
+          value: 9.9,
+          currency: 'BRL'
+        })
+      }
+
       const response = await fetch('/api/criar-preferencia', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
