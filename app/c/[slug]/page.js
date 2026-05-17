@@ -1,6 +1,8 @@
-import { createClient } from '@supabase/supabase-js'
+'use client'
 
-export const dynamic = 'force-dynamic'
+import { createClient } from '@supabase/supabase-js'
+import { useParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -27,14 +29,46 @@ function getMusicEmbed(url) {
   return null
 }
 
-export default async function CartinhaPage({ params }) {
-  const { data, error } = await supabase
-    .from('cartinhas')
-    .select('payload, status')
-    .eq('slug', params.slug)
-    .single()
+export default function CartinhaPage() {
+  const params = useParams()
+  const slug = params?.slug
 
-  if (error || !data?.payload) {
+  const [loading, setLoading] = useState(true)
+  const [cartinha, setCartinha] = useState(null)
+  const [error, setError] = useState(false)
+  const [opened, setOpened] = useState(false)
+
+  useEffect(() => {
+    async function loadCartinha() {
+      const { data, error } = await supabase
+        .from('cartinhas')
+        .select('payload, status')
+        .eq('slug', slug)
+        .single()
+
+      if (error || !data?.payload) {
+        setError(true)
+      } else {
+        setCartinha(data)
+      }
+
+      setLoading(false)
+    }
+
+    if (slug) loadCartinha()
+  }, [slug])
+
+  if (loading) {
+    return (
+      <main style={pageStyle}>
+        <div style={statusBoxStyle}>
+          <h1>Preparando sua cartinha... 💌</h1>
+        </div>
+      </main>
+    )
+  }
+
+  if (error || !cartinha?.payload) {
     return (
       <main style={pageStyle}>
         <div style={statusBoxStyle}>
@@ -45,7 +79,7 @@ export default async function CartinhaPage({ params }) {
     )
   }
 
-  if (data.status !== 'aprovado') {
+  if (cartinha.status !== 'aprovado') {
     return (
       <main style={pageStyle}>
         <div style={statusBoxStyle}>
@@ -57,7 +91,7 @@ export default async function CartinhaPage({ params }) {
     )
   }
 
-  const p = data.payload || {}
+  const p = cartinha.payload || {}
   const photos = Array.isArray(p.photos) ? p.photos : []
   const musicEmbed = getMusicEmbed(p.musicUrl)
 
@@ -98,8 +132,13 @@ export default async function CartinhaPage({ params }) {
         }
 
         @keyframes openLetter {
-          from { opacity: 0; transform: scale(.94) rotateX(8deg); }
-          to { opacity: 1; transform: scale(1) rotateX(0deg); }
+          from { opacity: 0; transform: scale(.94) translateY(30px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes envelopePop {
+          from { opacity: 0; transform: scale(.86) translateY(20px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         @media (max-width: 820px) {
@@ -143,113 +182,131 @@ export default async function CartinhaPage({ params }) {
       <div style={floatingHeartTwoStyle}>❤</div>
       <div style={floatingSparkleStyle}>✨</div>
 
-      <section style={topStyle}>
-        <div style={lineStyle} />
-        <span style={topTextStyle}>CARTINHA ESPECIAL</span>
-        <div style={lineStyle} />
-      </section>
-
-      <p style={subtitleStyle}>
-        Feita com carinho, guardada como memória.
-      </p>
-
-      <section style={sceneStyle}>
-        <div className="candle" style={candleStyle}>
-          <div style={flameStyle} />
-        </div>
-
-        <article className="letter-paper" style={paperStyle}>
-          <div style={paperTextureStyle} />
-          <div style={paperShineStyle} />
-
-          <div style={dateStyle}>
-            {new Intl.DateTimeFormat('pt-BR').format(new Date())}
-          </div>
-
-          <div style={heartTopStyle}>♡</div>
-
-          <h1 className="letter-title" style={letterTitleStyle}>
-            Minha {p.toName || 'pessoa especial'},
-          </h1>
-
-          <div style={underlineStyle} />
-
-          <div className="letter-message" style={messageStyle}>
-            {p.message || 'Uma mensagem especial foi escrita para você.'}
-          </div>
-
-          <div style={finalPhraseStyle}>
-            Te amo mais do que as palavras conseguem dizer.
-          </div>
-
-          <div style={signatureWrapStyle}>
-            <span style={signatureLabelStyle}>Com todo meu amor,</span>
-            <span className="signature" style={signatureStyle}>
-              {p.fromName || 'Alguém especial'}
-            </span>
-          </div>
-
-          <div style={heartBottomStyle}>♡</div>
-        </article>
-
-        {photos.length > 0 && (
-          <section style={memoriesStyle}>
-            <span style={sectionLabelStyle}>MEMÓRIAS</span>
-            <h2 style={sectionTitleStyle}>Momentos que merecem ficar</h2>
-
-            <div className="photo-grid" style={photoGridStyle}>
-              {photos.map((photo, index) => (
-                <div key={index} style={photoFrameStyle(index)}>
-                  <img
-                    src={photo}
-                    alt={`Memória ${index + 1}`}
-                    style={photoStyle}
-                  />
-                </div>
-              ))}
+      {!opened ? (
+        <section style={envelopeSectionStyle}>
+          <div style={envelopeStyle} onClick={() => setOpened(true)}>
+            <div style={envelopeFlapStyle} />
+            <div style={envelopeBodyStyle}>
+              <div style={sealStyle}>❤</div>
+              <p style={envelopeSmallStyle}>Uma mensagem especial</p>
+              <h1 style={envelopeTitleStyle}>Toque para abrir</h1>
+              <p style={envelopeTextStyle}>
+                Essa cartinha foi feita com carinho para você.
+              </p>
             </div>
+          </div>
+        </section>
+      ) : (
+        <>
+          <section style={topStyle}>
+            <div style={lineStyle} />
+            <span style={topTextStyle}>CARTINHA ESPECIAL</span>
+            <div style={lineStyle} />
           </section>
-        )}
 
-        {p.musicUrl && (
-          <section style={musicBoxStyle}>
-            <span style={sectionLabelStyle}>TRILHA SONORA</span>
-            <h2 style={sectionTitleStyle}>Nossa música 🎵</h2>
+          <p style={subtitleStyle}>
+            Feita com carinho, guardada como memória.
+          </p>
 
-            {musicEmbed ? (
-              <iframe
-                src={musicEmbed}
-                width="100%"
-                height={p.musicUrl.includes('spotify') ? '152' : '315'}
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                style={iframeStyle}
-              />
-            ) : (
-              <a href={p.musicUrl} target="_blank" rel="noreferrer" style={musicLinkStyle}>
-                Abrir música
-              </a>
+          <section style={sceneStyle}>
+            <div className="candle" style={candleStyle}>
+              <div style={flameStyle} />
+            </div>
+
+            <article className="letter-paper" style={paperStyle}>
+              <div style={paperTextureStyle} />
+              <div style={paperShineStyle} />
+
+              <div style={dateStyle}>
+                {new Intl.DateTimeFormat('pt-BR').format(new Date())}
+              </div>
+
+              <div style={heartTopStyle}>♡</div>
+
+              <h1 className="letter-title" style={letterTitleStyle}>
+                Minha {p.toName || 'pessoa especial'},
+              </h1>
+
+              <div style={underlineStyle} />
+
+              <div className="letter-message" style={messageStyle}>
+                {p.message || 'Uma mensagem especial foi escrita para você.'}
+              </div>
+
+              <div style={finalPhraseStyle}>
+                Te amo mais do que as palavras conseguem dizer.
+              </div>
+
+              <div style={signatureWrapStyle}>
+                <span style={signatureLabelStyle}>Com todo meu amor,</span>
+                <span className="signature" style={signatureStyle}>
+                  {p.fromName || 'Alguém especial'}
+                </span>
+              </div>
+
+              <div style={heartBottomStyle}>♡</div>
+            </article>
+
+            {photos.length > 0 && (
+              <section style={memoriesStyle}>
+                <span style={sectionLabelStyle}>MEMÓRIAS</span>
+                <h2 style={sectionTitleStyle}>Momentos que merecem ficar</h2>
+
+                <div className="photo-grid" style={photoGridStyle}>
+                  {photos.map((photo, index) => (
+                    <div key={index} style={photoFrameStyle(index)}>
+                      <img
+                        src={photo}
+                        alt={`Memória ${index + 1}`}
+                        style={photoStyle}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
             )}
+
+            {p.musicUrl && (
+              <section style={musicBoxStyle}>
+                <span style={sectionLabelStyle}>TRILHA SONORA</span>
+                <h2 style={sectionTitleStyle}>Nossa música 🎵</h2>
+
+                {musicEmbed ? (
+                  <iframe
+                    src={musicEmbed}
+                    width="100%"
+                    height={p.musicUrl.includes('spotify') ? '152' : '315'}
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    style={iframeStyle}
+                  />
+                ) : (
+                  <a href={p.musicUrl} target="_blank" rel="noreferrer" style={musicLinkStyle}>
+                    Abrir música
+                  </a>
+                )}
+              </section>
+            )}
+
+            <div style={quoteStyle}>
+              “Você é meu hoje e todos os meus amanhãs.”
+            </div>
+
+            <div className="actions" style={actionsStyle}>
+              <a href={whatsappUrl} target="_blank" rel="noreferrer" style={primaryButtonStyle}>
+                💖 Responder essa cartinha
+              </a>
+
+              <a href="/" style={secondaryButtonStyle}>
+                Criar outra cartinha
+              </a>
+            </div>
+
+            <p style={footerNoteStyle}>
+              Criado com Link do Amor 💌
+            </p>
           </section>
-        )}
-
-        <div style={quoteStyle}>
-          “Você é meu hoje e todos os meus amanhãs.”
-        </div>
-
-        <div className="actions" style={actionsStyle}>
-          <a href={whatsappUrl} target="_blank" rel="noreferrer" style={primaryButtonStyle}>
-            💖 Responder essa cartinha
-          </a>
-
-          <a href="/" style={secondaryButtonStyle}>
-            Criar outra cartinha
-          </a>
-        </div>
-
-        <p style={footerNoteStyle}>
-          Criado com Link do Amor 💌
-        </p>
-      </section>
+        </>
+      )}
     </main>
   )
 }
@@ -263,6 +320,90 @@ const pageStyle = {
     'radial-gradient(circle at 20% 12%, rgba(255,90,95,0.30), transparent 24%), radial-gradient(circle at 78% 18%, rgba(255,184,92,0.18), transparent 24%), radial-gradient(circle at 50% 100%, rgba(140,0,20,0.50), transparent 35%), linear-gradient(180deg, #2b0207 0%, #120002 100%)',
   position: 'relative',
   overflow: 'hidden'
+}
+
+const envelopeSectionStyle = {
+  minHeight: '84vh',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  position: 'relative',
+  zIndex: 3
+}
+
+const envelopeStyle = {
+  width: 'min(92vw, 520px)',
+  minHeight: 340,
+  cursor: 'pointer',
+  position: 'relative',
+  animation: 'envelopePop .8s ease both',
+  filter: 'drop-shadow(0 35px 80px rgba(0,0,0,0.55))'
+}
+
+const envelopeFlapStyle = {
+  position: 'absolute',
+  top: 0,
+  left: '8%',
+  width: '84%',
+  height: 170,
+  background: 'linear-gradient(180deg, #ff8ca8, #a5152b)',
+  clipPath: 'polygon(0 0, 100% 0, 50% 100%)',
+  borderRadius: '20px 20px 0 0',
+  zIndex: 2
+}
+
+const envelopeBodyStyle = {
+  position: 'absolute',
+  inset: '86px 0 0',
+  borderRadius: 30,
+  background:
+    'linear-gradient(135deg, #7d0719 0%, #d94764 52%, #7d0719 100%)',
+  border: '1px solid rgba(255,255,255,0.18)',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 28,
+  textAlign: 'center'
+}
+
+const sealStyle = {
+  width: 78,
+  height: 78,
+  borderRadius: '50%',
+  display: 'grid',
+  placeItems: 'center',
+  background: 'linear-gradient(135deg, #ffd4de, #ff5c7a)',
+  color: '#8c061b',
+  fontSize: 38,
+  boxShadow: '0 14px 40px rgba(0,0,0,0.28)',
+  marginBottom: 20
+}
+
+const envelopeSmallStyle = {
+  textTransform: 'uppercase',
+  letterSpacing: 3,
+  color: 'rgba(255,255,255,0.72)',
+  fontFamily: 'Arial, sans-serif',
+  fontSize: 12,
+  fontWeight: 900,
+  margin: 0
+}
+
+const envelopeTitleStyle = {
+  fontFamily: 'Arial, sans-serif',
+  fontSize: 'clamp(38px, 8vw, 62px)',
+  margin: '10px 0',
+  lineHeight: 1
+}
+
+const envelopeTextStyle = {
+  maxWidth: 360,
+  color: 'rgba(255,255,255,0.78)',
+  fontFamily: 'Arial, sans-serif',
+  fontSize: 17,
+  lineHeight: 1.55,
+  margin: 0
 }
 
 const glowOneStyle = {
