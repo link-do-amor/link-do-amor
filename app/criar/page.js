@@ -1,12 +1,3 @@
-Claro. Substitui **inteiro**:
-
-```txt
-app/criar/page.js
-```
-
-por este código completo:
-
-```javascript
 'use client'
 
 import Link from 'next/link'
@@ -535,4 +526,3 @@ const photoStyle = {
   objectFit: 'cover',
   borderRadius: 14
 }
-```
