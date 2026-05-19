@@ -25,19 +25,30 @@ export default function Home() {
   return (
     <main style={pageStyle}>
       <style>{`
+        * {
+          box-sizing: border-box;
+        }
+
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          overflow-x: hidden;
+        }
+
+        a {
+          color: inherit;
+        }
+
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-14px); }
+          50% { transform: translateY(-10px); }
         }
 
         @keyframes pulseGlow {
           0%, 100% { opacity: .55; transform: scale(1); }
           50% { opacity: 1; transform: scale(1.06); }
-        }
-
-        @keyframes shimmer {
-          0% { transform: translateX(-120%); }
-          100% { transform: translateX(120%); }
         }
 
         @keyframes fadeUp {
@@ -46,38 +57,30 @@ export default function Home() {
         }
 
         @media (max-width: 900px) {
+          .desktop-nav {
+            display: none !important;
+          }
+
+          .hero-grid,
+          .preview-grid {
+            grid-template-columns: 1fr !important;
+          }
+
           .hero-grid {
-            grid-template-columns: 1fr !important;
-            padding-top: 40px !important;
+            gap: 36px !important;
+            padding-top: 28px !important;
+            min-height: auto !important;
           }
 
           .hero-title {
-            font-size: 56px !important;
-          }
-
-          .mockup {
-            max-width: 100% !important;
-          }
-
-          .stats {
-            grid-template-columns: 1fr !important;
-          }
-
-          .steps-grid,
-          .proof-grid,
-          .features-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-
-        @media (max-width: 520px) {
-          .hero-title {
-            font-size: 44px !important;
-            letter-spacing: -1.5px !important;
+            font-size: clamp(38px, 11vw, 58px) !important;
+            line-height: 1.02 !important;
+            letter-spacing: -2px !important;
           }
 
           .hero-subtitle {
             font-size: 18px !important;
+            line-height: 1.55 !important;
           }
 
           .cta-row {
@@ -88,6 +91,96 @@ export default function Home() {
             width: 100% !important;
             text-align: center !important;
           }
+
+          .stats,
+          .steps-grid,
+          .proof-grid,
+          .features-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .mockup {
+            max-width: 100% !important;
+            animation: none !important;
+          }
+
+          .floating-note {
+            position: relative !important;
+            right: auto !important;
+            bottom: auto !important;
+            margin-top: 16px !important;
+            transform: none !important;
+            width: 100% !important;
+            text-align: center !important;
+          }
+
+          .paper-text {
+            font-size: 19px !important;
+            line-height: 1.65 !important;
+          }
+
+          .paper-title {
+            font-size: 36px !important;
+          }
+        }
+
+        @media (max-width: 520px) {
+          .header {
+            padding: 18px 14px !important;
+          }
+
+          .logo-text {
+            font-size: 18px !important;
+          }
+
+          .hero-grid,
+          .section,
+          .preview-grid,
+          .features-section,
+          .final-cta {
+            padding-left: 14px !important;
+            padding-right: 14px !important;
+          }
+
+          .badge {
+            font-size: 13px !important;
+            line-height: 1.35 !important;
+          }
+
+          .terminal {
+            padding: 20px !important;
+          }
+
+          .terminal pre {
+            font-size: 14px !important;
+            line-height: 1.65 !important;
+            min-height: auto !important;
+          }
+
+          .window-top {
+            height: 56px !important;
+            padding: 0 16px !important;
+          }
+
+          .paper {
+            padding: 28px 22px !important;
+          }
+
+          .section-title {
+            font-size: 34px !important;
+            letter-spacing: -1px !important;
+          }
+
+          .final-title {
+            font-size: 36px !important;
+            letter-spacing: -1px !important;
+          }
+
+          .final-button {
+            width: 100% !important;
+            font-size: 18px !important;
+            padding: 18px 22px !important;
+          }
         }
       `}</style>
 
@@ -95,13 +188,13 @@ export default function Home() {
       <div style={bgGlowTwoStyle} />
       <div style={bgGlowThreeStyle} />
 
-      <header style={headerStyle}>
+      <header className="header" style={headerStyle}>
         <Link href="/" style={logoStyle}>
           <span style={logoIconStyle}>💌</span>
-          <span>Link do Amor</span>
+          <span className="logo-text">Link do Amor</span>
         </Link>
 
-        <nav style={navStyle}>
+        <nav className="desktop-nav" style={navStyle}>
           <a href="#como-funciona" style={navLinkStyle}>Como funciona</a>
           <a href="#depoimentos" style={navLinkStyle}>Depoimentos</a>
           <Link href="/criar" style={headerButtonStyle}>Criar agora</Link>
@@ -110,7 +203,7 @@ export default function Home() {
 
       <section className="hero-grid" style={heroStyle}>
         <div style={heroLeftStyle}>
-          <div style={badgeStyle}>
+          <div className="badge" style={badgeStyle}>
             <span>✨</span>
             <span>Surpreenda quem você ama em poucos minutos</span>
           </div>
@@ -157,7 +250,7 @@ export default function Home() {
             <div style={mockupGlowStyle} />
 
             <div style={windowStyle}>
-              <div style={windowTopStyle}>
+              <div className="window-top" style={windowTopStyle}>
                 <div style={dotsStyle}>
                   <span style={dotStyle} />
                   <span style={dotStyle} />
@@ -167,12 +260,12 @@ export default function Home() {
                 <strong>cartinha.txt</strong>
               </div>
 
-              <div style={terminalStyle}>
+              <div className="terminal" style={terminalStyle}>
                 <pre style={preStyle}>
 {`┌─ Cartinha Especial
 │
 ${typed}
-└────────────────────
+└────────────────
 
 [1/8] 🤖 IA
 [2/8] 💌 Mensagem
@@ -186,17 +279,17 @@ ${typed}
               </div>
             </div>
 
-            <div style={floatingNoteStyle}>
+            <div className="floating-note" style={floatingNoteStyle}>
               “Ela vai guardar isso pra sempre.”
             </div>
           </div>
         </div>
       </section>
 
-      <section id="como-funciona" style={sectionStyle}>
+      <section id="como-funciona" className="section" style={sectionStyle}>
         <div style={sectionHeaderStyle}>
           <span style={smallLabelStyle}>Simples, rápido e emocionante</span>
-          <h2 style={sectionTitleStyle}>Como funciona</h2>
+          <h2 className="section-title" style={sectionTitleStyle}>Como funciona</h2>
         </div>
 
         <div className="steps-grid" style={stepsGridStyle}>
@@ -207,21 +300,21 @@ ${typed}
         </div>
       </section>
 
-      <section id="preview" style={previewSectionStyle}>
+      <section id="preview" className="preview-grid" style={previewSectionStyle}>
         <div style={paperWrapStyle}>
-          <div style={paperStyle}>
+          <div className="paper" style={paperStyle}>
             <div style={paperDateStyle}>16/05/2026</div>
             <div style={paperHeartStyle}>♡</div>
 
-            <h2 style={paperTitleStyle}>Minha pessoa especial,</h2>
+            <h2 className="paper-title" style={paperTitleStyle}>Minha pessoa especial,</h2>
             <div style={paperUnderlineStyle} />
 
-            <p style={paperTextStyle}>
+            <p className="paper-text" style={paperTextStyle}>
               Desde que você apareceu na minha vida, tudo ficou mais bonito, mais leve e mais verdadeiro.
               Você tem esse jeito único de transformar momentos simples em lembranças inesquecíveis.
             </p>
 
-            <p style={paperTextStyle}>
+            <p className="paper-text" style={paperTextStyle}>
               Essa cartinha é só uma forma de dizer que você importa, que você faz diferença e que merece ser lembrada com carinho.
             </p>
 
@@ -235,7 +328,7 @@ ${typed}
 
         <div style={previewTextStyle}>
           <span style={smallLabelStyle}>Visual apaixonante</span>
-          <h2 style={sectionTitleStyle}>Uma carta que parece feita à mão</h2>
+          <h2 className="section-title" style={sectionTitleStyle}>Uma carta que parece feita à mão</h2>
           <p style={sectionParagraphStyle}>
             A pessoa recebe uma experiência romântica, com visual de carta, clima de surpresa e botão para responder no WhatsApp.
           </p>
@@ -246,10 +339,10 @@ ${typed}
         </div>
       </section>
 
-      <section id="depoimentos" style={sectionStyle}>
+      <section id="depoimentos" className="section" style={sectionStyle}>
         <div style={sectionHeaderStyle}>
           <span style={smallLabelStyle}>Prova social</span>
-          <h2 style={sectionTitleStyle}>Histórias que emocionam</h2>
+          <h2 className="section-title" style={sectionTitleStyle}>Histórias que emocionam</h2>
         </div>
 
         <div className="proof-grid" style={proofGridStyle}>
@@ -259,7 +352,7 @@ ${typed}
         </div>
       </section>
 
-      <section style={featuresSectionStyle}>
+      <section className="features-section" style={featuresSectionStyle}>
         <div className="features-grid" style={featuresGridStyle}>
           <Feature icon="🔒" title="Pagamento seguro" text="Processado pelo Mercado Pago." />
           <Feature icon="⚡" title="Entrega rápida" text="Cartinha liberada após confirmação." />
@@ -267,11 +360,11 @@ ${typed}
         </div>
       </section>
 
-      <section style={finalCtaStyle}>
-        <h2 style={finalTitleStyle}>Sua pessoa especial merece uma surpresa inesquecível.</h2>
+      <section className="final-cta" style={finalCtaStyle}>
+        <h2 className="final-title" style={finalTitleStyle}>Sua pessoa especial merece uma surpresa inesquecível.</h2>
         <p style={finalTextStyle}>Crie agora em poucos minutos.</p>
 
-        <Link href="/criar" style={finalButtonStyle}>
+        <Link href="/criar" className="final-button" style={finalButtonStyle}>
           💖 Criar minha cartinha por R$ 9,90
         </Link>
       </section>
@@ -327,12 +420,13 @@ function Feature({ icon, title, text }) {
 
 const pageStyle = {
   minHeight: '100vh',
+  width: '100%',
+  overflowX: 'hidden',
   background:
     'radial-gradient(circle at top left, rgba(255,90,140,0.22), transparent 28%), radial-gradient(circle at 85% 20%, rgba(180,80,255,0.16), transparent 24%), linear-gradient(180deg, #170005 0%, #080002 55%, #120005 100%)',
   color: '#fff',
   fontFamily: 'Arial, sans-serif',
-  position: 'relative',
-  overflow: 'hidden'
+  position: 'relative'
 }
 
 const bgGlowOneStyle = {
@@ -344,7 +438,8 @@ const bgGlowOneStyle = {
   borderRadius: '50%',
   background: 'rgba(255,70,130,0.20)',
   filter: 'blur(80px)',
-  animation: 'pulseGlow 5s infinite'
+  animation: 'pulseGlow 5s infinite',
+  pointerEvents: 'none'
 }
 
 const bgGlowTwoStyle = {
@@ -356,7 +451,8 @@ const bgGlowTwoStyle = {
   borderRadius: '50%',
   background: 'rgba(190,90,255,0.16)',
   filter: 'blur(90px)',
-  animation: 'pulseGlow 7s infinite'
+  animation: 'pulseGlow 7s infinite',
+  pointerEvents: 'none'
 }
 
 const bgGlowThreeStyle = {
@@ -367,7 +463,8 @@ const bgGlowThreeStyle = {
   height: 360,
   borderRadius: '50%',
   background: 'rgba(255,150,80,0.12)',
-  filter: 'blur(80px)'
+  filter: 'blur(80px)',
+  pointerEvents: 'none'
 }
 
 const headerStyle = {
@@ -377,6 +474,8 @@ const headerStyle = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
+  gap: 16,
+  flexWrap: 'wrap',
   position: 'relative',
   zIndex: 3
 }
@@ -388,7 +487,8 @@ const logoStyle = {
   alignItems: 'center',
   gap: 10,
   fontSize: 24,
-  fontWeight: 900
+  fontWeight: 900,
+  minWidth: 0
 }
 
 const logoIconStyle = {
@@ -398,13 +498,15 @@ const logoIconStyle = {
   display: 'grid',
   placeItems: 'center',
   background: 'rgba(255,255,255,0.08)',
-  border: '1px solid rgba(255,255,255,0.12)'
+  border: '1px solid rgba(255,255,255,0.12)',
+  flexShrink: 0
 }
 
 const navStyle = {
   display: 'flex',
   gap: 22,
-  alignItems: 'center'
+  alignItems: 'center',
+  flexWrap: 'wrap'
 }
 
 const navLinkStyle = {
@@ -424,12 +526,13 @@ const headerButtonStyle = {
 }
 
 const heroStyle = {
+  width: '100%',
   maxWidth: 1240,
   margin: '0 auto',
   padding: '70px 20px 90px',
   minHeight: '88vh',
   display: 'grid',
-  gridTemplateColumns: '1.05fr .95fr',
+  gridTemplateColumns: 'minmax(0, 1.05fr) minmax(0, .95fr)',
   gap: 70,
   alignItems: 'center',
   position: 'relative',
@@ -437,7 +540,8 @@ const heroStyle = {
 }
 
 const heroLeftStyle = {
-  animation: 'fadeUp .8s ease both'
+  animation: 'fadeUp .8s ease both',
+  minWidth: 0
 }
 
 const badgeStyle = {
@@ -450,15 +554,18 @@ const badgeStyle = {
   border: '1px solid rgba(255,255,255,0.12)',
   color: '#ffd1df',
   fontWeight: 800,
-  marginBottom: 26
+  marginBottom: 26,
+  maxWidth: '100%'
 }
 
 const titleStyle = {
-  fontSize: 'clamp(58px, 7vw, 98px)',
-  lineHeight: 0.98,
-  letterSpacing: '-4px',
+  fontSize: 'clamp(42px, 7vw, 86px)',
+  lineHeight: 1,
+  letterSpacing: '-3px',
   margin: 0,
-  fontWeight: 900
+  fontWeight: 900,
+  maxWidth: '100%',
+  overflowWrap: 'break-word'
 }
 
 const gradientTextStyle = {
@@ -510,7 +617,7 @@ const secondaryButtonStyle = {
 const statsStyle = {
   marginTop: 34,
   display: 'grid',
-  gridTemplateColumns: 'repeat(3, 1fr)',
+  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
   gap: 12,
   maxWidth: 720
 }
@@ -519,7 +626,8 @@ const statCardStyle = {
   padding: 18,
   borderRadius: 22,
   background: 'rgba(255,255,255,0.06)',
-  border: '1px solid rgba(255,255,255,0.08)'
+  border: '1px solid rgba(255,255,255,0.08)',
+  minWidth: 0
 }
 
 const statNumberStyle = {
@@ -535,14 +643,16 @@ const statLabelStyle = {
 
 const heroRightStyle = {
   display: 'flex',
-  justifyContent: 'center'
+  justifyContent: 'center',
+  minWidth: 0
 }
 
 const mockupStyle = {
   width: '100%',
   maxWidth: 460,
   position: 'relative',
-  animation: 'float 5s ease-in-out infinite'
+  animation: 'float 5s ease-in-out infinite',
+  minWidth: 0
 }
 
 const mockupGlowStyle = {
@@ -559,7 +669,8 @@ const windowStyle = {
   overflow: 'hidden',
   background: '#16131d',
   border: '1px solid rgba(255,255,255,0.10)',
-  boxShadow: '0 35px 90px rgba(0,0,0,0.52)'
+  boxShadow: '0 35px 90px rgba(0,0,0,0.52)',
+  width: '100%'
 }
 
 const windowTopStyle = {
@@ -594,12 +705,13 @@ const preStyle = {
   fontSize: 19,
   lineHeight: 1.8,
   color: '#fff',
-  fontFamily: 'Courier New, monospace'
+  fontFamily: 'Courier New, monospace',
+  overflowWrap: 'break-word'
 }
 
 const floatingNoteStyle = {
   position: 'absolute',
-  right: -26,
+  right: -10,
   bottom: -28,
   padding: '16px 18px',
   borderRadius: 22,
@@ -612,6 +724,7 @@ const floatingNoteStyle = {
 }
 
 const sectionStyle = {
+  width: '100%',
   maxWidth: 1240,
   margin: '0 auto',
   padding: '90px 20px',
@@ -633,16 +746,17 @@ const smallLabelStyle = {
 }
 
 const sectionTitleStyle = {
-  fontSize: 'clamp(40px, 5vw, 64px)',
+  fontSize: 'clamp(38px, 5vw, 64px)',
   lineHeight: 1.08,
   margin: '12px 0 0',
   fontWeight: 900,
-  letterSpacing: '-2px'
+  letterSpacing: '-2px',
+  overflowWrap: 'break-word'
 }
 
 const stepsGridStyle = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(4, 1fr)',
+  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
   gap: 18
 }
 
@@ -650,7 +764,8 @@ const stepCardStyle = {
   padding: 28,
   borderRadius: 30,
   background: 'rgba(255,255,255,0.055)',
-  border: '1px solid rgba(255,255,255,0.09)'
+  border: '1px solid rgba(255,255,255,0.09)',
+  minWidth: 0
 }
 
 const stepTopStyle = {
@@ -683,11 +798,12 @@ const stepTextStyle = {
 }
 
 const previewSectionStyle = {
+  width: '100%',
   maxWidth: 1240,
   margin: '0 auto',
   padding: '70px 20px 110px',
   display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
+  gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
   gap: 54,
   alignItems: 'center',
   position: 'relative',
@@ -695,7 +811,8 @@ const previewSectionStyle = {
 }
 
 const paperWrapStyle = {
-  position: 'relative'
+  position: 'relative',
+  minWidth: 0
 }
 
 const paperStyle = {
@@ -704,7 +821,9 @@ const paperStyle = {
   padding: 42,
   borderRadius: 12,
   boxShadow: '0 30px 80px rgba(0,0,0,0.45)',
-  border: '1px solid rgba(110,50,15,0.35)'
+  border: '1px solid rgba(110,50,15,0.35)',
+  width: '100%',
+  overflow: 'hidden'
 }
 
 const paperDateStyle = {
@@ -721,13 +840,14 @@ const paperHeartStyle = {
 
 const paperTitleStyle = {
   fontFamily: 'Brush Script MT, Segoe Script, cursive',
-  fontSize: 48,
+  fontSize: 'clamp(34px, 6vw, 48px)',
   fontWeight: 400,
   margin: 0
 }
 
 const paperUnderlineStyle = {
   width: 190,
+  maxWidth: '70%',
   height: 3,
   background: '#d85b68',
   margin: '6px 0 24px',
@@ -736,13 +856,14 @@ const paperUnderlineStyle = {
 
 const paperTextStyle = {
   fontFamily: 'Segoe Script, Brush Script MT, cursive',
-  fontSize: 26,
-  lineHeight: 1.65
+  fontSize: 'clamp(19px, 4vw, 26px)',
+  lineHeight: 1.65,
+  overflowWrap: 'break-word'
 }
 
 const paperFinalStyle = {
   fontFamily: 'Segoe Script, Brush Script MT, cursive',
-  fontSize: 27,
+  fontSize: 'clamp(20px, 4vw, 27px)',
   marginTop: 18,
   borderBottom: '3px solid rgba(216,91,104,0.75)'
 }
@@ -750,12 +871,13 @@ const paperFinalStyle = {
 const paperSignatureStyle = {
   marginTop: 26,
   fontFamily: 'Brush Script MT, Segoe Script, cursive',
-  fontSize: 48,
+  fontSize: 'clamp(36px, 8vw, 48px)',
   textAlign: 'right'
 }
 
 const previewTextStyle = {
-  maxWidth: 560
+  maxWidth: 560,
+  minWidth: 0
 }
 
 const sectionParagraphStyle = {
@@ -767,7 +889,7 @@ const sectionParagraphStyle = {
 
 const proofGridStyle = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(3, 1fr)',
+  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
   gap: 20
 }
 
@@ -775,7 +897,8 @@ const testimonialStyle = {
   padding: 30,
   borderRadius: 30,
   background: 'rgba(255,255,255,0.055)',
-  border: '1px solid rgba(255,255,255,0.09)'
+  border: '1px solid rgba(255,255,255,0.09)',
+  minWidth: 0
 }
 
 const quoteIconStyle = {
@@ -804,7 +927,8 @@ const avatarStyle = {
   display: 'grid',
   placeItems: 'center',
   background: 'linear-gradient(90deg,#ff6ea8,#c25cff)',
-  fontWeight: 900
+  fontWeight: 900,
+  flexShrink: 0
 }
 
 const cityStyle = {
@@ -813,6 +937,7 @@ const cityStyle = {
 }
 
 const featuresSectionStyle = {
+  width: '100%',
   maxWidth: 1240,
   margin: '0 auto',
   padding: '20px 20px 90px',
@@ -822,7 +947,7 @@ const featuresSectionStyle = {
 
 const featuresGridStyle = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(3, 1fr)',
+  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
   gap: 18
 }
 
@@ -833,11 +958,13 @@ const featureStyle = {
   padding: 24,
   borderRadius: 26,
   background: 'rgba(255,255,255,0.045)',
-  border: '1px solid rgba(255,255,255,0.08)'
+  border: '1px solid rgba(255,255,255,0.08)',
+  minWidth: 0
 }
 
 const featureIconStyle = {
-  fontSize: 34
+  fontSize: 34,
+  flexShrink: 0
 }
 
 const featureTitleStyle = {
@@ -850,6 +977,7 @@ const featureTextStyle = {
 }
 
 const finalCtaStyle = {
+  width: '100%',
   maxWidth: 1000,
   margin: '0 auto',
   padding: '90px 20px 110px',
@@ -859,10 +987,11 @@ const finalCtaStyle = {
 }
 
 const finalTitleStyle = {
-  fontSize: 'clamp(42px,6vw,76px)',
+  fontSize: 'clamp(38px,6vw,76px)',
   lineHeight: 1.08,
   margin: 0,
-  letterSpacing: '-2px'
+  letterSpacing: '-2px',
+  overflowWrap: 'break-word'
 }
 
 const finalTextStyle = {
@@ -884,6 +1013,7 @@ const finalButtonStyle = {
 }
 
 const footerStyle = {
+  width: '100%',
   maxWidth: 1240,
   margin: '0 auto',
   padding: '28px 20px',
